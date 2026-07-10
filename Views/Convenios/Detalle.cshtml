@@ -1,0 +1,309 @@
+@model SistemaConvenios.Application.Convenios.ConvenioDetalleDto
+@{
+    ViewData["Title"] = $"Convenio {Model.Numero}";
+}
+
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">@TempData["Exito"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h4 class="mb-0">📄 @Model.Numero</h4>
+        <small class="text-muted">@Model.Entidad?.Nombre — @Model.TipoConvenio</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="GestionContractual" asp-action="Index" asp-route-convenioId="@Model.Id"
+           class="btn btn-primary btn-sm">⚙ Gestión contractual</a>
+        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-sm">✎ Editar</a>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Volver</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    @* Datos principales *@
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-sm-3 text-muted small">Tipo</div>
+                    <div class="col-sm-9">@Model.TipoConvenio</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3 text-muted small">Ámbito</div>
+                    <div class="col-sm-9">@Model.Ambito</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3 text-muted small">Estado</div>
+                    <div class="col-sm-9">
+                        @{ var bc = Model.Estado switch {
+                            "Vigente" => "success", "Por vencer" => "warning",
+                            "Terminado" => "secondary", "Renovado automático" => "primary",
+                            _ => "light text-dark border" }; }
+                        <span class="badge bg-@bc">@Model.Estado</span>
+                    </div>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.AreaPromotora))
+                {
+                    <div class="row mb-2">
+                        <div class="col-sm-3 text-muted small">Área promotora</div>
+                        <div class="col-sm-9">@Model.AreaPromotora</div>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.ConvenioPadreNumero))
+                {
+                    <div class="row mb-2">
+                        <div class="col-sm-3 text-muted small">Convenio base</div>
+                        <div class="col-sm-9">
+                            <a asp-action="Detalle" asp-route-id="@Model.ConvenioPadreId" class="text-decoration-none">
+                                @Model.ConvenioPadreNumero
+                            </a>
+                            <span class="text-muted small">(@Model.ConvenioPadreTipo)</span>
+                        </div>
+                    </div>
+                }
+                <div class="row mb-2">
+                    <div class="col-sm-3 text-muted small">Inicio</div>
+                    <div class="col-sm-9">@Model.FechaInicio.ToString("dd/MM/yyyy")</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-3 text-muted small">Vencimiento</div>
+                    <div class="col-sm-9 @(Model.FechaVencimiento < DateTime.UtcNow ? "text-danger fw-bold" : "")">
+                        @Model.FechaVencimiento.ToString("dd/MM/yyyy")
+                        @if (Model.FechaVencimiento < DateTime.UtcNow)
+                        { <span class="badge bg-danger ms-1">Vencido</span> }
+                        else if (Model.FechaVencimiento < DateTime.UtcNow.AddDays(30))
+                        { <span class="badge bg-warning text-dark ms-1">Próximo a vencer</span> }
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.NumeroResolucion))
+                {
+                    <div class="row mb-2">
+                        <div class="col-sm-3 text-muted small">N° Resolución</div>
+                        <div class="col-sm-9"><code>@Model.NumeroResolucion</code></div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Supervisor))
+                {
+                    <div class="row mb-2">
+                        <div class="col-sm-3 text-muted small">Supervisor</div>
+                        <div class="col-sm-9">@Model.Supervisor</div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.ContactoGestionNombre) ||
+                     !string.IsNullOrEmpty(Model.ContactoGestionEmail) ||
+                     !string.IsNullOrEmpty(Model.ContactoGestionTelefono))
+                {
+                    <div class="row mb-2">
+                        <div class="col-sm-3 text-muted small">Contacto de gestión</div>
+                        <div class="col-sm-9">
+                            @Model.ContactoGestionNombre
+                            @if (!string.IsNullOrWhiteSpace(Model.ContactoGestionEmail))
+                            {
+                                <span class="text-muted small ms-1">✉ @Model.ContactoGestionEmail</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(Model.ContactoGestionTelefono))
+                            {
+                                <span class="text-muted small ms-1">☎ @Model.ContactoGestionTelefono</span>
+                            }
+                        </div>
+                    </div>
+                }
+                @if (Model.Facultades.Any())
+                {
+                    <div class="row mb-2">
+                        <div class="col-sm-3 text-muted small">Facultades</div>
+                        <div class="col-sm-9">
+                            @foreach (var facultad in Model.Facultades)
+                            {
+                                <span class="badge bg-light text-dark border me-1">@(facultad.Siglas ?? facultad.Nombre)</span>
+                            }
+                        </div>
+                    </div>
+                }
+                @if (Model.Carreras.Any())
+                {
+                    <div class="row mb-2">
+                        <div class="col-sm-3 text-muted small">Carreras</div>
+                        <div class="col-sm-9">
+                            @foreach (var carrera in Model.Carreras)
+                            {
+                                <span class="badge bg-light text-dark border me-1">@carrera.Nombre</span>
+                            }
+                        </div>
+                    </div>
+                }
+                <hr />
+                <div class="row">
+                    <div class="col-sm-3 text-muted small">Objeto</div>
+                    <div class="col-sm-9" style="white-space:pre-wrap">@Model.Objeto</div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Observaciones))
+                {
+                    <div class="row mt-2">
+                        <div class="col-sm-3 text-muted small">Observaciones</div>
+                        <div class="col-sm-9" style="white-space:pre-wrap">@Model.Observaciones</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* Archivos PDF *@
+        <div class="card shadow-sm mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center bg-white">
+                <span class="fw-semibold">📎 Documentos adjuntos</span>
+                <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#panelSubir">+ Subir PDF</button>
+            </div>
+            <div class="collapse" id="panelSubir">
+                <div class="card-body border-bottom bg-light">
+                    <form asp-action="SubirArchivo" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="ConvenioId" value="@Model.Id" />
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label small">Archivo PDF *</label>
+                                <input type="file" name="Archivo" accept=".pdf" class="form-control form-control-sm" required />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">Tipo</label>
+                                <select name="TipoDocumento" class="form-select form-select-sm">
+                                    <option>Convenio</option>
+                                    <option>Adenda</option>
+                                    <option>Resolución</option>
+                                    <option>Acta</option>
+                                    <option>Otro</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">Descripción</label>
+                                <input type="text" name="Descripcion" class="form-control form-control-sm" placeholder="Opcional..." />
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary btn-sm w-100">Subir</button>
+                            </div>
+                        </div>
+                        <div class="form-text mt-1">Solo PDF. Máximo 10 MB.</div>
+                    </form>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.Archivos.Any())
+                {
+                    <p class="text-muted text-center py-3 mb-0 small">No hay documentos adjuntos.</p>
+                }
+                else
+                {
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr><th>Archivo</th><th>Tipo</th><th>Tamaño</th><th>Fecha</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var arch in Model.Archivos.OrderByDescending(a => a.FechaSubida))
+                            {
+                                <tr>
+                                    <td><a asp-action="DescargarArchivo" asp-route-id="@arch.Id" class="text-decoration-none">📄 @arch.NombreOriginal</a></td>
+                                    <td><span class="badge bg-light text-dark border">@arch.TipoDocumento</span></td>
+                                    <td class="text-muted small">@(arch.TamanioBytes / 1024) KB</td>
+                                    <td class="text-muted small">@arch.FechaSubida.ToLocalTime().ToString("dd/MM/yy HH:mm")</td>
+                                    <td>
+                                        <form asp-action="EliminarArchivo" method="post" style="display:inline" onsubmit="return confirm('¿Eliminar?')">
+                                            <input type="hidden" name="id" value="@arch.Id" />
+                                            <input type="hidden" name="convenioId" value="@Model.Id" />
+                                            <button type="submit" class="btn btn-link btn-sm text-danger p-0">Eliminar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+
+        @* Historial de estados *@
+        <div class="card shadow-sm">
+            <div class="card-header bg-white fw-semibold">🕒 Historial de estados</div>
+            <div class="card-body p-0">
+                @if (!Model.Historial.Any())
+                {
+                    <p class="text-muted text-center py-3 mb-0 small">Sin historial registrado.</p>
+                }
+                else
+                {
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr><th>Fecha</th><th>Estado anterior</th><th>Estado nuevo</th><th>Observación</th><th>Usuario</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var h in Model.Historial)
+                            {
+                                <tr>
+                                    <td class="small">@h.FechaCambio.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td><span class="badge bg-light text-dark border">@h.EstadoAnterior</span></td>
+                                    <td><span class="badge bg-primary">@h.EstadoNuevo</span></td>
+                                    <td class="small text-muted">@h.Observacion</td>
+                                    <td class="small text-muted">@h.CambiadoPor</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* Panel lateral *@
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-white fw-semibold">Cambiar estado</div>
+            <div class="card-body">
+                <form asp-action="CambiarEstado" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <select name="nuevoEstado" class="form-select form-select-sm mb-2">
+                        @foreach (var e in new[] { "Vigente","Por vencer","Terminado","Renovado automático" })
+                        {
+                            <option value="@e" selected="@(Model.Estado == e ? "selected" : null)">@e</option>
+                        }
+                    </select>
+                    <input type="text" name="observacion" class="form-control form-control-sm mb-2" placeholder="Observación (opcional)..." />
+                    <button type="submit" class="btn btn-outline-primary btn-sm w-100">Actualizar estado</button>
+                </form>
+            </div>
+        </div>
+
+        @if (Model.Entidad != null)
+        {
+            <div class="card shadow-sm">
+                <div class="card-header bg-white fw-semibold">Entidad contraparte</div>
+                <div class="card-body small">
+                    <p class="fw-semibold mb-1">@Model.Entidad.Nombre</p>
+                    <p class="mb-1 text-muted">Tipo: @Model.Entidad.TipoEntidad</p>
+                    @if (!string.IsNullOrEmpty(Model.Entidad.RepresentanteLegal))
+                    { <p class="mb-1 text-muted">Rep.: @Model.Entidad.RepresentanteLegal</p> }
+                    @if (!string.IsNullOrEmpty(Model.Entidad.CargoRepresentante))
+                    { <p class="mb-1 text-muted">Cargo: @Model.Entidad.CargoRepresentante</p> }
+                    @if (!string.IsNullOrEmpty(Model.Entidad.TelefonoRepresentante))
+                    { <p class="mb-1 text-muted">Tel. rep.: @Model.Entidad.TelefonoRepresentante</p> }
+                    @if (!string.IsNullOrEmpty(Model.Entidad.Ciudad))
+                    { <p class="mb-1 text-muted">@Model.Entidad.Provincia · @Model.Entidad.Ciudad, @Model.Entidad.Pais</p> }
+                    @if (!string.IsNullOrEmpty(Model.Entidad.Email))
+                    { <p class="mb-1 text-muted">✉ @Model.Entidad.Email</p> }
+                    @if (!string.IsNullOrWhiteSpace(Model.Entidad.ContactoGestionNombre))
+                    {
+                        <hr />
+                        <p class="mb-1 fw-semibold">Contacto de gestión de la entidad</p>
+                        <p class="mb-1 text-muted">@Model.Entidad.ContactoGestionNombre</p>
+                        @if (!string.IsNullOrWhiteSpace(Model.Entidad.ContactoGestionEmail))
+                        { <p class="mb-1 text-muted">✉ @Model.Entidad.ContactoGestionEmail</p> }
+                        @if (!string.IsNullOrWhiteSpace(Model.Entidad.ContactoGestionTelefono))
+                        { <p class="mb-0 text-muted">☎ @Model.Entidad.ContactoGestionTelefono</p> }
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

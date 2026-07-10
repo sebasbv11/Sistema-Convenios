@@ -1,0 +1,165 @@
+@model IEnumerable<SistemaConvenios.Application.Convenios.ConvenioListaDto>
+
+@{
+    ViewData["Title"] = "Reportes";
+    var tipoReporte = ViewBag.TipoReporte as string ?? "por-vencer";
+    var estados = ViewBag.Estados as IEnumerable<string> ?? Array.Empty<string>();
+
+    string Active(string value) => tipoReporte == value ? "active" : "";
+    string TituloReporte() => tipoReporte switch
+    {
+        "vigentes" => "Convenios vigentes",
+        "especificos" => "Convenios específicos",
+        _ => "Convenios por vencer"
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="mb-0">📊 Reportes completos</h4>
+        <small class="text-muted">Filtra por empresa, ubicación, estado y rango de fechas.</small>
+    </div>
+    <a asp-controller="Convenios" asp-action="Index" class="btn btn-outline-secondary btn-sm">Ver registros</a>
+</div>
+
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item">
+        <a class="nav-link @Active("por-vencer")"
+           asp-action="Index"
+           asp-route-tipoReporte="por-vencer">Por vencer</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @Active("vigentes")"
+           asp-action="Index"
+           asp-route-tipoReporte="vigentes">Vigentes</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @Active("especificos")"
+           asp-action="Index"
+           asp-route-tipoReporte="especificos">Específicos</a>
+    </li>
+</ul>
+
+<form method="get" class="card shadow-sm mb-3">
+    <input type="hidden" name="tipoReporte" value="@tipoReporte" />
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small">Empresa / entidad</label>
+                <input name="empresa" value="@ViewBag.EmpresaFiltro" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Provincia</label>
+                <input name="provincia" value="@ViewBag.ProvinciaFiltro" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Ciudad</label>
+                <input name="ciudad" value="@ViewBag.CiudadFiltro" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Estado</label>
+                <select name="estado" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    @foreach (var estado in estados)
+                    {
+                        <option value="@estado" selected="@(ViewBag.EstadoFiltro == estado ? "selected" : null)">@estado</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label small">Desde</label>
+                <input type="date" name="fechaDesde" value="@ViewBag.FechaDesdeFiltro" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-1">
+                <label class="form-label small">Hasta</label>
+                <input type="date" name="fechaHasta" value="@ViewBag.FechaHastaFiltro" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-1 d-grid">
+                <button type="submit" class="btn btn-outline-primary btn-sm">Filtrar</button>
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-3">
+            <a asp-action="Index" asp-route-tipoReporte="@tipoReporte" class="btn btn-link btn-sm">Limpiar</a>
+            <a asp-controller="Convenios"
+               asp-action="ExportarCsv"
+               asp-route-empresa="@ViewBag.EmpresaFiltro"
+               asp-route-provincia="@ViewBag.ProvinciaFiltro"
+               asp-route-ciudad="@ViewBag.CiudadFiltro"
+               asp-route-estado="@ViewBag.EstadoFiltro"
+               asp-route-fechaDesde="@ViewBag.FechaDesdeFiltro"
+               asp-route-fechaHasta="@ViewBag.FechaHastaFiltro"
+               asp-route-reporte="@tipoReporte"
+               class="btn btn-success btn-sm">Exportar CSV</a>
+            <button type="button" onclick="window.print()" class="btn btn-outline-dark btn-sm">Imprimir PDF</button>
+        </div>
+    </div>
+</form>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">@TituloReporte()</span>
+        <span class="badge bg-light text-dark border">@Model.Count() registro(s)</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>N°</th>
+                    <th>Empresa</th>
+                    <th>Tipo</th>
+                    <th>Base</th>
+                    <th>Área promotora</th>
+                    <th>Ubicación</th>
+                    <th>Fechas</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td><code>@c.Numero</code></td>
+                        <td>@c.Entidad</td>
+                        <td>@c.TipoConvenio</td>
+                        <td class="small text-muted">@(string.IsNullOrWhiteSpace(c.ConvenioPadreNumero) ? "—" : c.ConvenioPadreNumero)</td>
+                        <td class="small">@c.AreaPromotora</td>
+                        <td class="small text-muted">@c.Provincia · @c.Ciudad</td>
+                        <td class="small">
+                            @c.FechaInicio.ToString("dd/MM/yyyy")
+                            <span class="text-muted">→</span>
+                            <span class="@(c.FechaVencimiento < DateTime.Today ? "text-danger fw-bold" : c.FechaVencimiento < DateTime.Today.AddDays(30) ? "text-warning fw-bold" : "")">
+                                @c.FechaVencimiento.ToString("dd/MM/yyyy")
+                            </span>
+                        </td>
+                        <td>
+                            @{
+                                var badgeClass = c.Estado switch
+                                {
+                                    "Vigente" => "success",
+                                    "Por vencer" => "warning",
+                                    "Terminado" => "secondary",
+                                    "Renovado automático" => "primary",
+                                    _ => "light text-dark border"
+                                };
+                            }
+                            <span class="badge bg-@badgeClass">@c.Estado</span>
+                        </td>
+                        <td>
+                            <a asp-controller="Convenios" asp-action="Detalle" asp-route-id="@c.Id" class="btn btn-outline-primary btn-sm">Detalle</a>
+                        </td>
+                    </tr>
+                }
+
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            No hay registros para este reporte con los filtros aplicados.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

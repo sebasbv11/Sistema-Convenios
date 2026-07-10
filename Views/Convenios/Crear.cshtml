@@ -1,0 +1,197 @@
+@model SistemaConvenios.Models.ConvenioFormViewModel
+@using SistemaConvenios.Application.Convenios
+
+@{
+    ViewData["Title"] = "Nuevo convenio";
+
+    var facultades = ViewBag.Facultades as IEnumerable<CatalogoItemDto> ?? new List<CatalogoItemDto>();
+    var carreras = ViewBag.Carreras as IEnumerable<CatalogoItemDto> ?? new List<CatalogoItemDto>();
+
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">+ Nuevo convenio</h4>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Volver</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form asp-action="Crear" method="post">
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label asp-for="Numero" class="form-label"></label>
+                    <input asp-for="Numero" class="form-control" readonly style="background:#f0f0ee" />
+                    <span asp-validation-for="Numero" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="TipoConvenioId" class="form-label"></label>
+                    <select asp-for="TipoConvenioId" asp-items="ViewBag.TiposConvenio" class="form-select">
+                        <option value="">-- Seleccione --</option>
+                    </select>
+                    <span asp-validation-for="TipoConvenioId" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="Ambito" class="form-label"></label>
+                    <select asp-for="Ambito" asp-items="ViewBag.Ambitos" class="form-select">
+                        <option value="">-- Seleccione --</option>
+                    </select>
+                    <span asp-validation-for="Ambito" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="Estado" class="form-label"></label>
+                    <select asp-for="Estado" asp-items="ViewBag.Estados" class="form-select"></select>
+                    <span asp-validation-for="Estado" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="EntidadId" class="form-label"></label>
+                    <select asp-for="EntidadId" asp-items="ViewBag.Entidades" class="form-select">
+                        <option value="">-- Seleccione entidad --</option>
+                    </select>
+                    <span asp-validation-for="EntidadId" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="AreaPromotoraId" class="form-label"></label>
+                    <select asp-for="AreaPromotoraId" asp-items="ViewBag.AreasPromotoras" class="form-select">
+                        <option value="">-- Seleccione área --</option>
+                    </select>
+                    <span asp-validation-for="AreaPromotoraId" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6" id="convenioBasePanel">
+                    <label asp-for="ConvenioPadreId" class="form-label"></label>
+                    <select asp-for="ConvenioPadreId" asp-items="ViewBag.ConveniosBase" class="form-select">
+                        <option value="">-- Seleccione convenio marco/internacional --</option>
+                    </select>
+                    <span asp-validation-for="ConvenioPadreId" class="text-danger small"></span>
+                    <div class="form-text">Obligatorio si el tipo es “Específico”. Los representantes se heredan del convenio base.</div>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Supervisor" class="form-label"></label>
+                    <input asp-for="Supervisor" class="form-control" placeholder="Nombre del responsable..." />
+                    <span asp-validation-for="Supervisor" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="ContactoGestionNombre" class="form-label"></label>
+                    <input asp-for="ContactoGestionNombre" class="form-control" placeholder="Nombre del contacto operativo" />
+                    <span asp-validation-for="ContactoGestionNombre" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="ContactoGestionEmail" class="form-label"></label>
+                    <input asp-for="ContactoGestionEmail" type="email" class="form-control" placeholder="contacto@empresa.com" />
+                    <span asp-validation-for="ContactoGestionEmail" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="ContactoGestionTelefono" class="form-label"></label>
+                    <input asp-for="ContactoGestionTelefono" class="form-control" placeholder="Teléfono / celular" />
+                    <span asp-validation-for="ContactoGestionTelefono" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-12">
+                    <label asp-for="Objeto" class="form-label"></label>
+                    <textarea asp-for="Objeto" class="form-control" rows="3" placeholder="Describe el objeto del convenio..."></textarea>
+                    <span asp-validation-for="Objeto" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="FechaInicio" class="form-label"></label>
+                    <input asp-for="FechaInicio" type="date" class="form-control" />
+                    <span asp-validation-for="FechaInicio" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="FechaVencimiento" class="form-label"></label>
+                    <input asp-for="FechaVencimiento" type="date" class="form-control" />
+                    <span asp-validation-for="FechaVencimiento" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="NumeroResolucion" class="form-label"></label>
+                    <input asp-for="NumeroResolucion" class="form-control" placeholder="Ej: R-CF-2026-015" />
+                    <span asp-validation-for="NumeroResolucion" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check mb-2">
+                        <input asp-for="RenovacionAutomatica" class="form-check-input" />
+                        <label asp-for="RenovacionAutomatica" class="form-check-label">Renovación automática</label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Facultades beneficiarias</label>
+                    <select name="FacultadIds" multiple class="form-select" style="height:120px">
+                        @foreach (var f in facultades)
+                        {
+                            <option value="@f.Id" selected="@(Model.FacultadIds.Contains(f.Id) ? "selected" : null)">
+                                @f.Nombre @(string.IsNullOrWhiteSpace(f.Siglas) ? "" : $"({f.Siglas})")
+                            </option>
+                        }
+                    </select>
+                    <div class="form-text">Mantén Ctrl para seleccionar varias.</div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Carreras beneficiarias</label>
+                    <select name="CarreraIds" multiple class="form-select" style="height:120px">
+                        @foreach (var c in carreras)
+                        {
+                            <option value="@c.Id" selected="@(Model.CarreraIds.Contains(c.Id) ? "selected" : null)">
+                                @c.Nombre @(string.IsNullOrWhiteSpace(c.Siglas) ? "" : $"({c.Siglas})")
+                            </option>
+                        }
+                    </select>
+                    <div class="form-text">Mantén Ctrl para seleccionar varias.</div>
+                </div>
+
+                <div class="col-md-12">
+                    <label asp-for="Observaciones" class="form-label"></label>
+                    <textarea asp-for="Observaciones" class="form-control" rows="2" placeholder="Observaciones adicionales..."></textarea>
+                    <span asp-validation-for="Observaciones" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Guardar convenio</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const tipo = document.getElementById("TipoConvenioId");
+            const panel = document.getElementById("convenioBasePanel");
+            const convenioPadre = document.getElementById("ConvenioPadreId");
+            const tipoEspecificoId = "@ViewBag.TipoEspecificoId";
+
+            function sincronizarConvenioBase() {
+                const requiereBase = tipo && tipo.value === tipoEspecificoId;
+                panel?.classList.toggle("d-none", !requiereBase);
+                if (convenioPadre) {
+                    convenioPadre.required = requiereBase;
+                    if (!requiereBase) convenioPadre.value = "";
+                }
+            }
+
+            tipo?.addEventListener("change", sincronizarConvenioBase);
+            sincronizarConvenioBase();
+        });
+    </script>
+}

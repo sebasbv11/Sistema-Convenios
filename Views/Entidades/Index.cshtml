@@ -1,0 +1,81 @@
+@model IEnumerable<SistemaConvenios.Application.Entidades.EntidadListaDto>
+@{
+    ViewData["Title"] = "Entidades";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">🏢 Entidades</h4>
+    <a asp-action="Crear" class="btn btn-primary btn-sm">+ Nueva entidad</a>
+</div>
+
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Exito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input name="busqueda" value="@ViewBag.Busqueda" class="form-control form-control-sm" placeholder="Buscar por nombre, provincia o ciudad..." />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary btn-sm">Filtrar</button>
+        <a asp-action="Index" class="btn btn-link btn-sm">Limpiar</a>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-hover table-sm">
+        <thead class="table-light">
+            <tr>
+                <th>Nombre</th>
+                <th>RUC</th>
+                <th>Representante</th>
+                <th>Provincia</th>
+                <th>Ciudad</th>
+                <th>País</th>
+                <th>Contacto gestión</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var e in Model)
+            {
+                <tr class="@(!e.Activo ? "text-muted" : "")">
+                    <td>
+                        @e.Nombre
+                        @if (!e.Activo)
+                        {
+                            <span class="badge bg-secondary ms-1">Inactiva</span>
+                        }
+                    </td>
+                    <td class="text-muted small">@e.Ruc</td>
+                    <td>@e.RepresentanteLegal</td>
+                    <td>@e.Provincia</td>
+                    <td>@e.Ciudad</td>
+                    <td>@e.Pais</td>
+                    <td class="text-muted small">
+                        @(string.IsNullOrWhiteSpace(e.ContactoGestionNombre) ? e.Email : e.ContactoGestionNombre)
+                        @if (!string.IsNullOrWhiteSpace(e.ContactoGestionTelefono))
+                        {
+                            <span> · @e.ContactoGestionTelefono</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Editar" asp-route-id="@e.Id" class="btn btn-outline-primary btn-sm">Editar</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center text-muted py-5">
+        <p>No hay entidades registradas aún.</p>
+        <a asp-action="Crear" class="btn btn-primary btn-sm">+ Registrar primera entidad</a>
+    </div>
+}

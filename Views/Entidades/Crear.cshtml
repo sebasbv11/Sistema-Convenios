@@ -1,0 +1,181 @@
+@model SistemaConvenios.Models.EntidadFormViewModel
+
+@{
+    ViewData["Title"] = "Nueva entidad";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">🏢 Nueva entidad</h4>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Volver</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form asp-action="Crear" method="post">
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <h6 class="text-muted mb-3">Datos generales</h6>
+
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label asp-for="Nombre" class="form-label"></label>
+                    <input asp-for="Nombre" class="form-control" placeholder="Nombre de la institución o persona" />
+                    <span asp-validation-for="Nombre" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="TipoEntidad" class="form-label"></label>
+                    <select asp-for="TipoEntidad" class="form-select">
+                        <option value="">Seleccione...</option>
+                        <option value="Pública">Sector público</option>
+                        <option value="Privada">Sector privado</option>
+                        <option value="ONG">ONG</option>
+                        <option value="Persona Natural">Persona natural</option>
+                    </select>
+                    <span asp-validation-for="TipoEntidad" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Ruc" class="form-label"></label>
+                    <input asp-for="Ruc"
+                           class="form-control"
+                           inputmode="numeric"
+                           maxlength="13"
+                           autocomplete="off"
+                           placeholder="10 dígitos cédula o 13 RUC" />
+                    <span asp-validation-for="Ruc" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-8">
+                    <label asp-for="Direccion" class="form-label"></label>
+                    <input asp-for="Direccion" class="form-control" placeholder="Opcional" />
+                    <span asp-validation-for="Direccion" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Provincia" class="form-label"></label>
+                    <input asp-for="Provincia" class="form-control" placeholder="Ej: Manabí" />
+                    <span asp-validation-for="Provincia" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Ciudad" class="form-label"></label>
+                    <input asp-for="Ciudad" class="form-control" placeholder="Ej: Manta" />
+                    <span asp-validation-for="Ciudad" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Pais" class="form-label"></label>
+                    <input asp-for="Pais" class="form-control" />
+                    <span asp-validation-for="Pais" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Telefono" class="form-label"></label>
+                    <input asp-for="Telefono" class="form-control" placeholder="Opcional" />
+                    <span asp-validation-for="Telefono" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="correo@ejemplo.com" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <hr class="my-4" />
+
+            <h6 class="text-muted mb-3">Datos del firmante / representante legal</h6>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="RepresentanteLegal" class="form-label"></label>
+                    <input asp-for="RepresentanteLegal" class="form-control" placeholder="Nombre completo" />
+                    <span asp-validation-for="RepresentanteLegal" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="CedulaRepresentante" class="form-label"></label>
+                    <input asp-for="CedulaRepresentante"
+                           class="form-control"
+                           inputmode="numeric"
+                           maxlength="10"
+                           autocomplete="off"
+                           placeholder="10 dígitos" />
+                    <span asp-validation-for="CedulaRepresentante" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="CargoRepresentante" class="form-label"></label>
+                    <input asp-for="CargoRepresentante" class="form-control" placeholder="Ej: Gerente General" />
+                    <span asp-validation-for="CargoRepresentante" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="TelefonoRepresentante" class="form-label"></label>
+                    <input asp-for="TelefonoRepresentante" class="form-control" placeholder="Teléfono / celular" />
+                    <span asp-validation-for="TelefonoRepresentante" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <hr class="my-4" />
+
+            <h6 class="text-muted mb-3">Contacto de gestión</h6>
+
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label asp-for="ContactoGestionNombre" class="form-label"></label>
+                    <input asp-for="ContactoGestionNombre" class="form-control" placeholder="Nombre completo" />
+                    <span asp-validation-for="ContactoGestionNombre" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="ContactoGestionCargo" class="form-label"></label>
+                    <input asp-for="ContactoGestionCargo" class="form-control" placeholder="Cargo / área" />
+                    <span asp-validation-for="ContactoGestionCargo" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="ContactoGestionEmail" class="form-label"></label>
+                    <input asp-for="ContactoGestionEmail" type="email" class="form-control" placeholder="gestion@empresa.com" />
+                    <span asp-validation-for="ContactoGestionEmail" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="ContactoGestionTelefono" class="form-label"></label>
+                    <input asp-for="ContactoGestionTelefono" class="form-control" placeholder="Teléfono / extensión" />
+                    <span asp-validation-for="ContactoGestionTelefono" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Guardar entidad</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const rucInput = document.getElementById("Ruc");
+            const cedulaInput = document.getElementById("CedulaRepresentante");
+
+            function soloNumeros(input) {
+                if (!input) return;
+
+                input.addEventListener("input", function () {
+                    this.value = this.value.replace(/\D/g, "");
+                });
+            }
+
+            soloNumeros(rucInput);
+            soloNumeros(cedulaInput);
+        });
+    </script>
+}

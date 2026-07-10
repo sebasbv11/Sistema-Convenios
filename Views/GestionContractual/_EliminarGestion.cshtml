@@ -1,0 +1,8 @@
+@model ValueTuple<int, string, int>
+<form asp-controller="GestionContractual" asp-action="Eliminar"
+      asp-route-convenioId="@Model.Item1" method="post" class="d-inline"
+      onsubmit="return confirm('¿Eliminar este registro?')">
+    <input type="hidden" name="tipo" value="@Model.Item2" />
+    <input type="hidden" name="id" value="@Model.Item3" />
+    <button type="submit" class="btn btn-link btn-sm text-danger p-0">Eliminar</button>
+</form>

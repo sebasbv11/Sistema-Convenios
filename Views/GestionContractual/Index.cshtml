@@ -1,0 +1,514 @@
+@model GestionContractualDto
+@{
+    ViewData["Title"] = $"Gestión contractual {Model.Numero}";
+    var ambitosDisponibles = new[]
+    {
+        "Académico", "Investigación", "Vinculación", "Prácticas preprofesionales",
+        "Pasantías", "Capacitación", "Transferencia tecnológica", "Cooperación interinstitucional"
+    };
+}
+
+@if (TempData["Exito"] is not null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Exito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] is not null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+    <div>
+        <h4 class="mb-1">Gestión contractual</h4>
+        <div class="text-muted">@Model.Numero · <span class="badge bg-primary">@Model.Estado</span></div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Convenios" asp-action="Detalle" asp-route-id="@Model.ConvenioId"
+           class="btn btn-outline-secondary btn-sm">← Volver al convenio</a>
+    </div>
+</div>
+
+<div class="row g-2 mb-3">
+    <div class="col-6 col-md"><div class="card card-body py-2"><small class="text-muted">Partes</small><strong>@Model.Partes.Count</strong></div></div>
+    <div class="col-6 col-md"><div class="card card-body py-2"><small class="text-muted">Firmantes</small><strong>@Model.Firmantes.Count</strong></div></div>
+    <div class="col-6 col-md"><div class="card card-body py-2"><small class="text-muted">Obligaciones</small><strong>@Model.Obligaciones.Count</strong></div></div>
+    <div class="col-6 col-md"><div class="card card-body py-2"><small class="text-muted">Actividades</small><strong>@Model.Actividades.Count</strong></div></div>
+    <div class="col-6 col-md"><div class="card card-body py-2"><small class="text-muted">Estudiantes</small><strong>@Model.Estudiantes.Count</strong></div></div>
+</div>
+
+<div class="accordion shadow-sm" id="gestionContractual">
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#datosLegales">
+                1. Datos legales, económicos y ámbitos
+            </button>
+        </h2>
+        <div id="datosLegales" class="accordion-collapse collapse show" data-bs-parent="#gestionContractual">
+            <div class="accordion-body">
+                <form asp-action="DatosLegales" asp-route-convenioId="@Model.ConvenioId" method="post">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Fecha de suscripción</label>
+                            <input type="date" name="FechaSuscripcion" class="form-control"
+                                   value="@Model.DatosLegales.FechaSuscripcion?.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Fecha de última firma</label>
+                            <input type="date" name="FechaUltimaFirma" class="form-control"
+                                   value="@Model.DatosLegales.FechaUltimaFirma?.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Presupuesto</label>
+                            <input type="number" name="Presupuesto" min="0" step="0.01" class="form-control"
+                                   value="@Model.DatosLegales.Presupuesto" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Moneda</label>
+                            <input name="Moneda" maxlength="10" class="form-control" value="@Model.DatosLegales.Moneda" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Domicilio contractual</label>
+                            <input name="DomicilioContractual" maxlength="300" class="form-control"
+                                   value="@Model.DatosLegales.DomicilioContractual" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fuente de financiamiento</label>
+                            <input name="FuenteFinanciamiento" maxlength="300" class="form-control"
+                                   value="@Model.DatosLegales.FuenteFinanciamiento" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Solución de controversias</label>
+                            <textarea name="MecanismoSolucionControversias" rows="2" maxlength="1000"
+                                      class="form-control">@Model.DatosLegales.MecanismoSolucionControversias</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Condiciones de renovación</label>
+                            <textarea name="CondicionesRenovacion" rows="2" maxlength="500"
+                                      class="form-control">@Model.DatosLegales.CondicionesRenovacion</textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label d-block">Ámbitos aplicables</label>
+                            <div class="d-flex flex-wrap gap-3">
+                                @foreach (var ambito in ambitosDisponibles)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="Ambitos" value="@ambito"
+                                               id="ambito-@ambito.GetHashCode()" checked="@Model.Ambitos.Contains(ambito)" />
+                                        <label class="form-check-label" for="ambito-@ambito.GetHashCode()">@ambito</label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-3 form-check ms-2">
+                            <input class="form-check-input" type="checkbox" name="TieneErogacion" value="true"
+                                   id="tieneErogacion" checked="@Model.DatosLegales.TieneErogacion" />
+                            <label class="form-check-label" for="tieneErogacion">Genera erogación económica</label>
+                        </div>
+                        <div class="col-md-3 form-check ms-2">
+                            <input class="form-check-input" type="checkbox" name="ConfidencialidadIndefinida" value="true"
+                                   id="confidencialidad" checked="@Model.DatosLegales.ConfidencialidadIndefinida" />
+                            <label class="form-check-label" for="confidencialidad">Confidencialidad indefinida</label>
+                        </div>
+                        <div class="col-12">
+                            <button class="btn btn-primary">Guardar datos legales</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#partes">
+                2. Partes, firmantes y responsables
+            </button>
+        </h2>
+        <div id="partes" class="accordion-collapse collapse" data-bs-parent="#gestionContractual">
+            <div class="accordion-body">
+                <h6>Partes intervinientes</h6>
+                <form asp-action="Parte" asp-route-convenioId="@Model.ConvenioId" method="post" class="border rounded p-3 mb-3 bg-light">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <label class="form-label small">Entidad registrada</label>
+                            <select name="EntidadId" id="entidadParte" class="form-select form-select-sm">
+                                <option value="">Otra / no registrada</option>
+                                @foreach (var item in Model.Entidades)
+                                {
+                                    <option value="@item.Id" data-nombre="@item.Nombre">@item.Nombre</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3"><label class="form-label small">Nombre *</label><input name="Nombre" id="nombreParte" required maxlength="200" class="form-control form-control-sm" /></div>
+                        <div class="col-md-2"><label class="form-label small">Alias</label><input name="Alias" maxlength="50" class="form-control form-control-sm" /></div>
+                        <div class="col-md-2"><label class="form-label small">Tipo *</label><select name="TipoParte" class="form-select form-select-sm"><option>Institución</option><option>Contraparte</option><option>Beneficiaria</option><option>Cooperante</option></select></div>
+                        <div class="col-md-2 d-flex align-items-end"><div class="form-check mb-1"><input name="Principal" value="true" type="checkbox" class="form-check-input" id="partePrincipal" /><label for="partePrincipal" class="form-check-label small">Principal</label></div></div>
+                        <div class="col-md-3"><label class="form-label small">RUC</label><input name="Ruc" maxlength="20" class="form-control form-control-sm" /></div>
+                        <div class="col-md-3"><label class="form-label small">Dirección</label><input name="Direccion" maxlength="300" class="form-control form-control-sm" /></div>
+                        <div class="col-md-2"><label class="form-label small">Teléfono</label><input name="Telefono" maxlength="50" class="form-control form-control-sm" /></div>
+                        <div class="col-md-3"><label class="form-label small">Correo</label><input name="Email" type="email" maxlength="150" class="form-control form-control-sm" /></div>
+                        <div class="col-md-1 d-flex align-items-end"><button class="btn btn-primary btn-sm w-100">Añadir</button></div>
+                    </div>
+                </form>
+                @if (!Model.Partes.Any())
+                {
+                    <p class="text-muted small">Aún no hay partes registradas.</p>
+                }
+                else
+                {
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm align-middle">
+                            <thead><tr><th>Nombre</th><th>Tipo</th><th>Contacto</th><th></th></tr></thead>
+                            <tbody>
+                            @foreach (var item in Model.Partes)
+                            {
+                                <tr>
+                                    <td>@item.Nombre @if (item.Principal) { <span class="badge bg-primary">Principal</span> }</td>
+                                    <td>@item.TipoParte</td>
+                                    <td class="small text-muted">@item.Email @item.Telefono</td>
+                                    <td class="text-end">@await Html.PartialAsync("_EliminarGestion", (Model.ConvenioId, "parte", item.Id))</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <h6>Firmantes</h6>
+                        <form asp-action="Firmante" asp-route-convenioId="@Model.ConvenioId" method="post" class="border rounded p-3 mb-3">
+                            <div class="row g-2">
+                                <div class="col-md-6"><label class="form-label small">Parte</label><select name="ParteId" class="form-select form-select-sm"><option value="">Sin asociar</option>@foreach (var p in Model.Partes) { <option value="@p.Id">@p.Nombre</option> }</select></div>
+                                <div class="col-md-6"><label class="form-label small">Nombre *</label><input name="Nombre" required class="form-control form-control-sm" /></div>
+                                <div class="col-md-6"><label class="form-label small">Cargo *</label><input name="Cargo" required class="form-control form-control-sm" /></div>
+                                <div class="col-md-6"><label class="form-label small">Identificación</label><input name="Identificacion" class="form-control form-control-sm" /></div>
+                                <div class="col-md-6"><label class="form-label small">Tipo de firma</label><select name="TipoFirma" class="form-select form-select-sm"><option>Electrónica</option><option>Manuscrita</option><option>Mixta</option></select></div>
+                                <div class="col-md-6"><label class="form-label small">Fecha</label><input name="FechaFirma" type="date" class="form-control form-control-sm" /></div>
+                                <div class="col-12"><label class="form-label small">Fundamento de representación</label><input name="FundamentoRepresentacion" class="form-control form-control-sm" /></div>
+                                <div class="col-12"><button class="btn btn-primary btn-sm">Añadir firmante</button></div>
+                            </div>
+                        </form>
+                        <ul class="list-group list-group-flush">
+                            @foreach (var item in Model.Firmantes)
+                            {
+                                <li class="list-group-item px-0 d-flex justify-content-between">
+                                    <span><strong>@item.Nombre</strong><br /><small class="text-muted">@item.Cargo · @item.TipoFirma @item.FechaFirma?.ToString("dd/MM/yyyy")</small></span>
+                                    @await Html.PartialAsync("_EliminarGestion", (Model.ConvenioId, "firmante", item.Id))
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="col-lg-6">
+                        <h6>Responsables y supervisores</h6>
+                        <form asp-action="Responsable" asp-route-convenioId="@Model.ConvenioId" method="post" class="border rounded p-3 mb-3">
+                            <div class="row g-2">
+                                <div class="col-md-6"><label class="form-label small">Parte</label><select name="ParteId" class="form-select form-select-sm"><option value="">Sin asociar</option>@foreach (var p in Model.Partes) { <option value="@p.Id">@p.Nombre</option> }</select></div>
+                                <div class="col-md-6"><label class="form-label small">Nombre *</label><input name="Nombre" required class="form-control form-control-sm" /></div>
+                                <div class="col-md-6"><label class="form-label small">Rol *</label><select name="Rol" class="form-select form-select-sm"><option>Supervisor</option><option>Administrador</option><option>Coordinador</option><option>Responsable técnico</option><option>Enlace institucional</option></select></div>
+                                <div class="col-md-6"><label class="form-label small">Cargo</label><input name="Cargo" class="form-control form-control-sm" /></div>
+                                <div class="col-md-6"><label class="form-label small">Correo</label><input name="Email" type="email" class="form-control form-control-sm" /></div>
+                                <div class="col-md-6"><label class="form-label small">Teléfono</label><input name="Telefono" class="form-control form-control-sm" /></div>
+                                <div class="col-6"><div class="form-check"><input name="Principal" value="true" type="checkbox" class="form-check-input" id="responsablePrincipal" /><label class="form-check-label small" for="responsablePrincipal">Responsable principal</label></div></div>
+                                <div class="col-6 text-end"><button class="btn btn-primary btn-sm">Añadir responsable</button></div>
+                            </div>
+                        </form>
+                        <ul class="list-group list-group-flush">
+                            @foreach (var item in Model.Responsables)
+                            {
+                                <li class="list-group-item px-0 d-flex justify-content-between">
+                                    <span><strong>@item.Nombre</strong> <span class="badge bg-light text-dark border">@item.Rol</span><br /><small class="text-muted">@item.Cargo · @item.Email</small></span>
+                                    @await Html.PartialAsync("_EliminarGestion", (Model.ConvenioId, "responsable", item.Id))
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#contenido">
+                3. Cláusulas y obligaciones
+            </button>
+        </h2>
+        <div id="contenido" class="accordion-collapse collapse" data-bs-parent="#gestionContractual">
+            <div class="accordion-body">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <h6>Cláusulas</h6>
+                        <form asp-action="Clausula" asp-route-convenioId="@Model.ConvenioId" method="post" class="border rounded p-3 mb-3">
+                            <div class="row g-2">
+                                <div class="col-md-7"><input name="Titulo" required maxlength="200" class="form-control form-control-sm" placeholder="Título de la cláusula" /></div>
+                                <div class="col-md-3"><select name="Tipo" class="form-select form-select-sm"><option>General</option><option>Objeto</option><option>Plazo</option><option>Confidencialidad</option><option>Terminación</option><option>Controversias</option><option>Protección de datos</option></select></div>
+                                <div class="col-md-2"><input name="Orden" type="number" min="1" max="100" value="1" class="form-control form-control-sm" title="Orden" /></div>
+                                <div class="col-12"><textarea name="Contenido" required rows="3" class="form-control form-control-sm" placeholder="Contenido"></textarea></div>
+                                <div class="col-12"><button class="btn btn-primary btn-sm">Añadir cláusula</button></div>
+                            </div>
+                        </form>
+                        @foreach (var item in Model.Clausulas)
+                        {
+                            <div class="border rounded p-2 mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <strong>@item.Orden. @item.Titulo</strong>
+                                    @await Html.PartialAsync("_EliminarGestion", (Model.ConvenioId, "clausula", item.Id))
+                                </div>
+                                <span class="badge bg-light text-dark border">@item.Tipo</span>
+                                <div class="small mt-2" style="white-space:pre-wrap">@item.Contenido</div>
+                            </div>
+                        }
+                    </div>
+                    <div class="col-lg-6">
+                        <h6>Obligaciones por actor</h6>
+                        <form asp-action="Obligacion" asp-route-convenioId="@Model.ConvenioId" method="post" class="border rounded p-3 mb-3">
+                            <div class="row g-2">
+                                <div class="col-md-5"><input name="Actor" required class="form-control form-control-sm" placeholder="Actor responsable" /></div>
+                                <div class="col-md-2"><input name="Orden" type="number" min="1" max="100" value="1" class="form-control form-control-sm" /></div>
+                                <div class="col-md-5"><button class="btn btn-primary btn-sm">Añadir obligación</button></div>
+                                <div class="col-12"><textarea name="Descripcion" required rows="2" class="form-control form-control-sm" placeholder="Obligación"></textarea></div>
+                            </div>
+                        </form>
+                        @foreach (var item in Model.Obligaciones)
+                        {
+                            <div class="border rounded p-2 mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span><strong>@item.Actor</strong> <span class="badge @(item.Estado == "Cumplida" ? "bg-success" : "bg-warning text-dark")">@item.Estado</span></span>
+                                    @await Html.PartialAsync("_EliminarGestion", (Model.ConvenioId, "obligacion", item.Id))
+                                </div>
+                                <div class="small my-2">@item.Descripcion</div>
+                                @if (item.Estado != "Cumplida")
+                                {
+                                    <form asp-action="CumplirObligacion" asp-route-convenioId="@Model.ConvenioId" asp-route-id="@item.Id" method="post" class="input-group input-group-sm">
+                                        <input name="evidencia" class="form-control" placeholder="Evidencia o referencia" />
+                                        <button class="btn btn-outline-success">Marcar cumplida</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <small class="text-muted">@item.FechaCumplimiento?.ToString("dd/MM/yyyy") · @item.Evidencia</small>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ejecucion">
+                4. Ejecución: actividades, estudiantes, horas y certificados
+            </button>
+        </h2>
+        <div id="ejecucion" class="accordion-collapse collapse" data-bs-parent="#gestionContractual">
+            <div class="accordion-body">
+                <h6>Actividades</h6>
+                <form asp-action="Actividad" asp-route-convenioId="@Model.ConvenioId" method="post" class="border rounded p-3 mb-3 bg-light">
+                    <div class="row g-2">
+                        <div class="col-md-3"><label class="form-label small">Nombre *</label><input name="Nombre" required class="form-control form-control-sm" /></div>
+                        <div class="col-md-2"><label class="form-label small">Tipo</label><select name="Tipo" class="form-select form-select-sm"><option>Vinculación</option><option>Prácticas preprofesionales</option><option>Pasantía</option><option>Capacitación</option><option>Investigación</option></select></div>
+                        <div class="col-md-2"><label class="form-label small">Inicio *</label><input name="FechaInicio" type="date" required value="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-control form-control-sm" /></div>
+                        <div class="col-md-2"><label class="form-label small">Fin *</label><input name="FechaFin" type="date" required value="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-control form-control-sm" /></div>
+                        <div class="col-md-1"><label class="form-label small">Horas</label><input name="HorasPlanificadas" type="number" min="0" value="0" class="form-control form-control-sm" /></div>
+                        <div class="col-md-2"><label class="form-label small">Lugar</label><input name="Lugar" class="form-control form-control-sm" /></div>
+                        <div class="col-md-4"><label class="form-label small">Responsable</label><input name="Responsable" class="form-control form-control-sm" /></div>
+                        <div class="col-md-6"><label class="form-label small">Descripción</label><input name="Descripcion" class="form-control form-control-sm" /></div>
+                        <div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary btn-sm w-100">Añadir</button></div>
+                    </div>
+                </form>
+                <div class="table-responsive mb-4">
+                    <table class="table table-sm align-middle">
+                        <thead><tr><th>Actividad</th><th>Fechas</th><th>Horas</th><th>Participantes</th><th></th></tr></thead>
+                        <tbody>
+                        @foreach (var item in Model.Actividades)
+                        {
+                            <tr>
+                                <td><strong>@item.Nombre</strong><br /><small class="text-muted">@item.Tipo · @item.Lugar</small></td>
+                                <td>@item.FechaInicio.ToString("dd/MM/yy") – @item.FechaFin.ToString("dd/MM/yy")</td>
+                                <td>@item.HorasPlanificadas</td>
+                                <td>@item.Participantes</td>
+                                <td class="text-end">@await Html.PartialAsync("_EliminarGestion", (Model.ConvenioId, "actividad", item.Id))</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+
+                <h6>Estudiantes</h6>
+                <form asp-action="Estudiante" asp-route-convenioId="@Model.ConvenioId" method="post" class="border rounded p-3 mb-3">
+                    <div class="row g-2">
+                        <div class="col-md-2"><label class="form-label small">Identificación *</label><input name="Identificacion" required class="form-control form-control-sm" /></div>
+                        <div class="col-md-3"><label class="form-label small">Nombre *</label><input name="Nombre" required class="form-control form-control-sm" /></div>
+                        <div class="col-md-3"><label class="form-label small">Carrera</label><select name="CarreraId" class="form-select form-select-sm"><option value="">Sin especificar</option>@foreach (var c in Model.Carreras) { <option value="@c.Id">@c.Nombre</option> }</select></div>
+                        <div class="col-md-2"><label class="form-label small">Correo</label><input name="Email" type="email" class="form-control form-control-sm" /></div>
+                        <div class="col-md-2"><label class="form-label small">Teléfono</label><input name="Telefono" class="form-control form-control-sm" /></div>
+                        <div class="col-md-3"><label class="form-label small">N.º póliza</label><input name="NumeroPoliza" class="form-control form-control-sm" /></div>
+                        <div class="col-md-3 d-flex align-items-end"><div class="form-check mb-1"><input name="CubiertoSeguro" value="true" type="checkbox" class="form-check-input" id="seguro" /><label for="seguro" class="form-check-label small">Cobertura de seguro verificada</label></div></div>
+                        <div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary btn-sm w-100">Añadir estudiante</button></div>
+                    </div>
+                </form>
+                <div class="table-responsive mb-4">
+                    <table class="table table-sm align-middle">
+                        <thead><tr><th>Estudiante</th><th>Carrera</th><th>Seguro</th><th></th></tr></thead>
+                        <tbody>
+                        @foreach (var item in Model.Estudiantes)
+                        {
+                            <tr>
+                                <td>@item.Nombre <small class="text-muted">(@item.Identificacion)</small></td>
+                                <td>@item.Carrera</td>
+                                <td>@if (item.CubiertoSeguro) { <span class="badge bg-success">Cubierto</span> } else { <span class="badge bg-warning text-dark">Pendiente</span> }</td>
+                                <td class="text-end">@await Html.PartialAsync("_EliminarGestion", (Model.ConvenioId, "estudiante", item.Id))</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+
+                <h6>Asignación, evaluación y certificados</h6>
+                <form asp-action="Participacion" asp-route-convenioId="@Model.ConvenioId" method="post" class="row g-2 border rounded p-3 mb-3">
+                    <div class="col-md-4"><select name="ActividadId" required class="form-select form-select-sm"><option value="">Actividad</option>@foreach (var a in Model.Actividades) { <option value="@a.Id">@a.Nombre</option> }</select></div>
+                    <div class="col-md-4"><select name="EstudianteId" required class="form-select form-select-sm"><option value="">Estudiante</option>@foreach (var e in Model.Estudiantes) { <option value="@e.Id">@e.Nombre</option> }</select></div>
+                    <div class="col-md-2"><input name="HorasAsignadas" type="number" min="0" value="0" class="form-control form-control-sm" placeholder="Horas" /></div>
+                    <div class="col-md-2"><button class="btn btn-primary btn-sm w-100">Asignar</button></div>
+                </form>
+                @foreach (var item in Model.Participaciones)
+                {
+                    <div class="border rounded p-2 mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span><strong>@item.Estudiante</strong> · @item.Actividad</span>
+                            @await Html.PartialAsync("_EliminarGestion", (Model.ConvenioId, "participacion", item.Id))
+                        </div>
+                        <small class="text-muted">Asignadas: @item.HorasAsignadas · Cumplidas: @item.HorasCumplidas · Calificación: @(item.Calificacion?.ToString("0.##") ?? "—") · Certificado: @(item.CertificadoEmitido ? "Sí" : "No")</small>
+                        <form asp-action="EvaluarParticipacion" asp-route-convenioId="@Model.ConvenioId" method="post" class="row g-2 mt-1">
+                            <input type="hidden" name="ParticipacionId" value="@item.Id" />
+                            <div class="col-md-2"><input name="HorasCumplidas" type="number" min="0" value="@item.HorasCumplidas" class="form-control form-control-sm" placeholder="Horas" /></div>
+                            <div class="col-md-2"><input name="Calificacion" type="number" min="0" max="100" step="0.01" value="@item.Calificacion" class="form-control form-control-sm" placeholder="Nota" /></div>
+                            <div class="col-md-5"><input name="Evaluacion" value="@item.Evaluacion" class="form-control form-control-sm" placeholder="Evaluación u observación" /></div>
+                            <div class="col-md-1 d-flex align-items-center"><div class="form-check"><input name="CertificadoEmitido" value="true" type="checkbox" checked="@item.CertificadoEmitido" class="form-check-input" title="Certificado emitido" /></div></div>
+                            <div class="col-md-2"><button class="btn btn-outline-primary btn-sm w-100">Guardar</button></div>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#seguimiento">
+                5. Convenios relacionados, modificaciones y evaluaciones
+            </button>
+        </h2>
+        <div id="seguimiento" class="accordion-collapse collapse" data-bs-parent="#gestionContractual">
+            <div class="accordion-body">
+                <div class="row g-4">
+                    <div class="col-lg-4">
+                        <h6>Convenios relacionados</h6>
+                        <form asp-action="Relacion" asp-route-convenioId="@Model.ConvenioId" method="post" class="border rounded p-3 mb-3">
+                            <select name="ConvenioRelacionadoId" required class="form-select form-select-sm mb-2">
+                                <option value="">Seleccione convenio</option>
+                                @foreach (var c in Model.ConveniosDisponibles) { <option value="@c.Id">@c.Nombre</option> }
+                            </select>
+                            <select name="TipoRelacion" class="form-select form-select-sm mb-2"><option>Específico</option><option>Marco</option><option>Complementario</option><option>Derivado</option><option>Sustituye</option></select>
+                            <button class="btn btn-primary btn-sm">Relacionar</button>
+                        </form>
+                        @foreach (var item in Model.Relaciones)
+                        {
+                            <div class="d-flex justify-content-between border-bottom py-2"><span>@item.Numero <span class="badge bg-light text-dark border">@item.TipoRelacion</span></span>@await Html.PartialAsync("_EliminarGestion", (Model.ConvenioId, "relacion", item.Id))</div>
+                        }
+                    </div>
+                    <div class="col-lg-4">
+                        <h6>Adendas y modificaciones</h6>
+                        <form asp-action="Modificacion" asp-route-convenioId="@Model.ConvenioId" method="post" class="border rounded p-3 mb-3">
+                            <div class="row g-2">
+                                <div class="col-6"><select name="Tipo" class="form-select form-select-sm"><option>Adenda</option><option>Prórroga</option><option>Modificatorio</option><option>Renovación</option></select></div>
+                                <div class="col-6"><input name="Fecha" type="date" required value="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-control form-control-sm" /></div>
+                                <div class="col-12"><textarea name="Descripcion" required class="form-control form-control-sm" placeholder="Descripción"></textarea></div>
+                                <div class="col-12"><input name="Motivo" class="form-control form-control-sm" placeholder="Motivo" /></div>
+                                <div class="col-12"><button class="btn btn-primary btn-sm">Registrar</button></div>
+                            </div>
+                        </form>
+                        @foreach (var item in Model.Modificaciones)
+                        {
+                            <div class="border-bottom py-2 d-flex justify-content-between"><span><strong>@item.Tipo</strong> · @item.Fecha.ToString("dd/MM/yyyy")<br /><small>@item.Descripcion</small></span>@await Html.PartialAsync("_EliminarGestion", (Model.ConvenioId, "modificacion", item.Id))</div>
+                        }
+                    </div>
+                    <div class="col-lg-4">
+                        <h6>Seguimiento y evaluación</h6>
+                        <form asp-action="Evaluacion" asp-route-convenioId="@Model.ConvenioId" method="post" class="border rounded p-3 mb-3">
+                            <div class="row g-2">
+                                <div class="col-6"><select name="Tipo" class="form-select form-select-sm"><option>Seguimiento</option><option>Intermedia</option><option>Final</option><option>Impacto</option></select></div>
+                                <div class="col-6"><input name="Fecha" type="date" required value="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-control form-control-sm" /></div>
+                                <div class="col-4"><input name="Calificacion" type="number" min="0" max="100" step="0.01" class="form-control form-control-sm" placeholder="Nota" /></div>
+                                <div class="col-8"><input name="Responsable" class="form-control form-control-sm" placeholder="Responsable" /></div>
+                                <div class="col-12"><textarea name="Conclusion" required class="form-control form-control-sm" placeholder="Conclusión"></textarea></div>
+                                <div class="col-12"><button class="btn btn-primary btn-sm">Registrar</button></div>
+                            </div>
+                        </form>
+                        @foreach (var item in Model.Evaluaciones)
+                        {
+                            <div class="border-bottom py-2 d-flex justify-content-between"><span><strong>@item.Tipo</strong> · @item.Fecha.ToString("dd/MM/yyyy") · @(item.Calificacion?.ToString("0.##") ?? "Sin nota")<br /><small>@item.Conclusion</small></span>@await Html.PartialAsync("_EliminarGestion", (Model.ConvenioId, "evaluacion", item.Id))</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#cierre">
+                6. Terminación y cierre
+            </button>
+        </h2>
+        <div id="cierre" class="accordion-collapse collapse" data-bs-parent="#gestionContractual">
+            <div class="accordion-body">
+                @if (Model.Cierre is not null)
+                {
+                    <div class="alert alert-secondary mb-0">
+                        <strong>Convenio cerrado el @Model.Cierre.Fecha.ToString("dd/MM/yyyy")</strong>
+                        <div>Causal: @Model.Cierre.Causal</div>
+                        <div class="mt-2">@Model.Cierre.Resumen</div>
+                        @if (!string.IsNullOrWhiteSpace(Model.Cierre.ObligacionesPendientes))
+                        {
+                            <div class="mt-2"><strong>Obligaciones pendientes:</strong> @Model.Cierre.ObligacionesPendientes</div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">Registrar el cierre cambia el estado del convenio a <strong>Terminado</strong>.</div>
+                    <form asp-action="Cierre" asp-route-convenioId="@Model.ConvenioId" method="post" onsubmit="return confirm('¿Confirma el cierre definitivo del convenio?')">
+                        <div class="row g-2">
+                            <div class="col-md-3"><label class="form-label">Fecha</label><input name="Fecha" type="date" required value="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-control" /></div>
+                            <div class="col-md-9"><label class="form-label">Causal *</label><input name="Causal" required maxlength="200" class="form-control" /></div>
+                            <div class="col-md-6"><label class="form-label">Resumen de resultados *</label><textarea name="Resumen" required rows="3" class="form-control"></textarea></div>
+                            <div class="col-md-6"><label class="form-label">Obligaciones pendientes</label><textarea name="ObligacionesPendientes" rows="3" class="form-control"></textarea></div>
+                            <div class="col-md-9"><label class="form-label">Responsables de seguimiento posterior</label><input name="ResponsablesSeguimiento" class="form-control" /></div>
+                            <div class="col-md-3 d-flex align-items-end"><button class="btn btn-danger w-100">Cerrar convenio</button></div>
+                        </div>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('entidadParte')?.addEventListener('change', function () {
+            const option = this.options[this.selectedIndex];
+            const input = document.getElementById('nombreParte');
+            if (input && option?.dataset.nombre) input.value = option.dataset.nombre;
+        });
+    </script>
+}

@@ -1,0 +1,158 @@
+@* ──────── Views/Convenios/Index.cshtml ──────── *@
+@model IEnumerable<SistemaConvenios.Application.Convenios.ConvenioListaDto>
+@{
+    ViewData["Title"] = "Convenios";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">📄 Convenios</h4>
+    <a asp-action="Crear" class="btn btn-primary btn-sm">+ Nuevo convenio</a>
+</div>
+
+@* Filtros *@
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-3">
+        <input name="busqueda" value="@ViewBag.Busqueda" class="form-control form-control-sm" placeholder="Buscar por número u objeto..." />
+    </div>
+    <div class="col-md-3">
+        <input name="empresa" value="@ViewBag.EmpresaFiltro" class="form-control form-control-sm" placeholder="Empresa / entidad..." />
+    </div>
+    <div class="col-md-2">
+        <input name="provincia" value="@ViewBag.ProvinciaFiltro" class="form-control form-control-sm" placeholder="Provincia..." />
+    </div>
+    <div class="col-md-2">
+        <input name="ciudad" value="@ViewBag.CiudadFiltro" class="form-control form-control-sm" placeholder="Ciudad..." />
+    </div>
+    <div class="col-md-2">
+        <select name="estado" class="form-select form-select-sm">
+            <option value="">Todos los estados</option>
+            @foreach (var e in new[] { "Vigente","Por vencer","Terminado","Renovado automático" })
+            {
+                <option value="@e" selected="@(ViewBag.EstadoFiltro == e ? "selected" : null)">@e</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="tipoId" asp-items="ViewBag.TiposConvenio" class="form-select form-select-sm">
+            <option value="">Todos los tipos</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="facultadId" asp-items="ViewBag.Facultades" class="form-select form-select-sm">
+            <option value="">Todas las facultades</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="carreraId" asp-items="ViewBag.Carreras" class="form-select form-select-sm">
+            <option value="">Todas las carreras</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="tipoEntidad" class="form-select form-select-sm">
+            <option value="">Todos los sectores</option>
+            @foreach (var t in new[] { "Pública", "Privada", "ONG", "Persona Natural" })
+            {
+                <option value="@t" selected="@(ViewBag.TipoEntidadFiltro == t ? "selected" : null)">@t</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <input type="date" name="fechaDesde" value="@ViewBag.FechaDesdeFiltro" class="form-control form-control-sm" title="Desde" />
+    </div>
+    <div class="col-md-2">
+        <input type="date" name="fechaHasta" value="@ViewBag.FechaHastaFiltro" class="form-control form-control-sm" title="Hasta" />
+    </div>
+    <div class="col-md-2">
+        <select name="reporte" class="form-select form-select-sm">
+            <option value="">Todos los reportes</option>
+            <option value="por-vencer" selected="@(ViewBag.ReporteFiltro == "por-vencer" ? "selected" : null)">Por vencer</option>
+            <option value="vigentes" selected="@(ViewBag.ReporteFiltro == "vigentes" ? "selected" : null)">Vigentes</option>
+            <option value="especificos" selected="@(ViewBag.ReporteFiltro == "especificos" ? "selected" : null)">Específicos</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary btn-sm">Filtrar</button>
+        <a asp-action="Index" class="btn btn-link btn-sm">Limpiar</a>
+        <a asp-action="ExportarCsv"
+           asp-route-busqueda="@ViewBag.Busqueda"
+           asp-route-estado="@ViewBag.EstadoFiltro"
+           asp-route-tipoId="@ViewBag.TipoFiltro"
+           asp-route-facultadId="@ViewBag.FacultadFiltro"
+           asp-route-carreraId="@ViewBag.CarreraFiltro"
+           asp-route-tipoEntidad="@ViewBag.TipoEntidadFiltro"
+           asp-route-empresa="@ViewBag.EmpresaFiltro"
+           asp-route-provincia="@ViewBag.ProvinciaFiltro"
+           asp-route-ciudad="@ViewBag.CiudadFiltro"
+           asp-route-fechaDesde="@ViewBag.FechaDesdeFiltro"
+           asp-route-fechaHasta="@ViewBag.FechaHastaFiltro"
+           asp-route-reporte="@ViewBag.ReporteFiltro"
+           class="btn btn-success btn-sm">Exportar Excel</a>
+        <button type="button" onclick="window.print()" class="btn btn-outline-dark btn-sm">PDF</button>
+    </div>
+</form>
+
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">@TempData["Exito"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+}
+
+<div class="table-responsive">
+    <table class="table table-hover table-sm">
+        <thead class="table-light">
+            <tr>
+                <th>N°</th>
+                <th>Entidad</th>
+                <th>Tipo</th>
+                <th>Base</th>
+                <th>Área</th>
+                <th>Ámbito</th>
+                <th>Vigencia</th>
+                <th>Vencimiento</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in Model)
+            {
+                <tr>
+                    <td><code>@c.Numero</code></td>
+                    <td>
+                        <div>@c.Entidad</div>
+                        <small class="text-muted">@c.Provincia @(!string.IsNullOrWhiteSpace(c.Ciudad) ? $"· {c.Ciudad}" : "")</small>
+                    </td>
+                    <td>@c.TipoConvenio</td>
+                    <td class="small text-muted">@(string.IsNullOrWhiteSpace(c.ConvenioPadreNumero) ? "—" : c.ConvenioPadreNumero)</td>
+                    <td class="small">@c.AreaPromotora</td>
+                    <td><span class="badge bg-light text-dark border">@c.Ambito</span></td>
+                    <td class="small text-muted">@c.FechaInicio.ToString("dd/MM/yyyy")</td>
+                    <td class="@(c.FechaVencimiento < DateTime.Today ? "text-danger" : c.FechaVencimiento < DateTime.Today.AddDays(30) ? "text-warning fw-bold" : "")">
+                        @c.FechaVencimiento.ToString("dd/MM/yyyy")
+                    </td>
+                    <td>
+                        @{
+                            var badgeClass = c.Estado switch {
+                                "Vigente" => "success",
+                                "Por vencer" => "warning",
+                                "Terminado" => "secondary",
+                                "Renovado automático" => "primary",
+                                _ => "light text-dark border"
+                            };
+                        }
+                        <span class="badge bg-@badgeClass">@c.Estado</span>
+                    </td>
+                    <td>
+                        <a asp-action="Detalle" asp-route-id="@c.Id" class="btn btn-outline-primary btn-sm">Ver</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center text-muted py-5">
+        <p>No se encontraron convenios con los filtros aplicados.</p>
+    </div>
+}
