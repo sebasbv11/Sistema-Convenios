@@ -1,0 +1,56 @@
+namespace SistemaConvenios.Application.Entidades;
+
+public sealed record GuardarEntidadCommand(
+    string Nombre,
+    string TipoEntidad,
+    string Ruc,
+    string Direccion,
+    string Provincia,
+    string Ciudad,
+    string Pais,
+    string RepresentanteLegal,
+    string CedulaRepresentante,
+    string CargoRepresentante,
+    string TelefonoRepresentante,
+    string Email,
+    string Telefono,
+    string? ContactoGestionNombre,
+    string? ContactoGestionCargo,
+    string? ContactoGestionEmail,
+    string? ContactoGestionTelefono,
+    bool Activo = true);
+
+public sealed record EntidadListaDto(
+    int Id,
+    string Nombre,
+    string TipoEntidad,
+    string Ruc,
+    string RepresentanteLegal,
+    string Provincia,
+    string Ciudad,
+    string Pais,
+    string Email,
+    string? ContactoGestionNombre,
+    string? ContactoGestionTelefono,
+    bool Activo);
+
+public sealed record EntidadEdicionDto(
+    int Id,
+    string Nombre,
+    string TipoEntidad,
+    string Ruc,
+    string Direccion,
+    string Provincia,
+    string Ciudad,
+    string Pais,
+    string RepresentanteLegal,
+    string CedulaRepresentante,
+    string CargoRepresentante,
+    string TelefonoRepresentante,
+    string Email,
+    string Telefono,
+    string? ContactoGestionNombre,
+    string? ContactoGestionCargo,
+    string? ContactoGestionEmail,
+    string? ContactoGestionTelefono,
+    bool Activo);
