@@ -1,0 +1,4 @@
+{
+  "dotnet.defaultSolution": "SistemaConvenios.sln",
+  "dotnet.testWindow.discoveryTimeoutInSec": 60
+}
