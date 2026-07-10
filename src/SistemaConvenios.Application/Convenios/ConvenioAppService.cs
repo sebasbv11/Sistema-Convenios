@@ -80,7 +80,13 @@ public sealed class ConvenioAppService : IConvenioAppService
                 .ToList(),
             areas
                 .Where(x => x.Activo)
-                .Select(x => new CatalogoItemDto(x.Id, $"{x.Codigo} - {x.Nombre}", x.Codigo))
+                .Select(x => new CatalogoItemDto(
+                    x.Id,
+                    x.AreaPadre is null
+                        ? $"{x.Codigo} - {x.Nombre}"
+                        : $"{x.AreaPadre.Nombre} / {x.Codigo} - {x.Nombre}",
+                    x.Codigo,
+                    x.AreaPadreId))
                 .ToList(),
             conveniosBase
                 .Select(x => new CatalogoItemDto(

@@ -132,7 +132,7 @@
 
                 <div class="col-md-6">
                     <label class="form-label">Facultades beneficiarias</label>
-                    <select name="FacultadIds" multiple class="form-select" style="height:120px">
+                    <select id="FacultadIds" name="FacultadIds" multiple class="form-select" style="height:120px">
                         @foreach (var f in facultades)
                         {
                             <option value="@f.Id" selected="@(Model.FacultadIds.Contains(f.Id) ? "selected" : null)">
@@ -145,10 +145,10 @@
 
                 <div class="col-md-6">
                     <label class="form-label">Carreras beneficiarias</label>
-                    <select name="CarreraIds" multiple class="form-select" style="height:120px">
+                    <select id="CarreraIds" name="CarreraIds" multiple class="form-select" style="height:120px">
                         @foreach (var c in carreras)
                         {
-                            <option value="@c.Id" selected="@(Model.CarreraIds.Contains(c.Id) ? "selected" : null)">
+                            <option value="@c.Id" data-facultad-id="@c.PadreId" selected="@(Model.CarreraIds.Contains(c.Id) ? "selected" : null)">
                                 @c.Nombre @(string.IsNullOrWhiteSpace(c.Siglas) ? "" : $"({c.Siglas})")
                             </option>
                         }
@@ -192,6 +192,25 @@
 
             tipo?.addEventListener("change", sincronizarConvenioBase);
             sincronizarConvenioBase();
+
+            const facultades = document.getElementById("FacultadIds");
+            const carreras = document.getElementById("CarreraIds");
+
+            function filtrarCarrerasPorFacultad() {
+                if (!facultades || !carreras) return;
+
+                const seleccionadas = Array.from(facultades.selectedOptions).map(x => x.value);
+                const filtrar = seleccionadas.length > 0;
+
+                Array.from(carreras.options).forEach(option => {
+                    const visible = !filtrar || seleccionadas.includes(option.dataset.facultadId || "");
+                    option.hidden = !visible;
+                    if (!visible) option.selected = false;
+                });
+            }
+
+            facultades?.addEventListener("change", filtrarCarrerasPorFacultad);
+            filtrarCarrerasPorFacultad();
         });
     </script>
 }

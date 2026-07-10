@@ -50,6 +50,10 @@ public sealed class AreaPromotora
     public int Id { get; private set; }
     public string Codigo { get; private set; } = string.Empty;
     public string Nombre { get; private set; } = string.Empty;
+    public string? Tipo { get; private set; }
+    public int? AreaPadreId { get; private set; }
+    public AreaPromotora? AreaPadre { get; private set; }
     public bool Activo { get; private set; } = true;
+    public ICollection<AreaPromotora> Subareas { get; private set; } = new List<AreaPromotora>();
     public ICollection<Convenio> Convenios { get; private set; } = new List<Convenio>();
 }

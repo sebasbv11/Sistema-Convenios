@@ -82,12 +82,13 @@ public sealed class ApplicationDbContext : IdentityDbContext<Usuario>, IUnitOfWo
             entity.ToTable("AreasPromotoras");
             entity.Property(x => x.Codigo).HasMaxLength(20).IsRequired();
             entity.Property(x => x.Nombre).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.Tipo).HasMaxLength(50);
+            entity.HasOne(x => x.AreaPadre)
+                .WithMany(x => x.Subareas)
+                .HasForeignKey(x => x.AreaPadreId)
+                .OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(x => x.Codigo).IsUnique();
-            entity.HasData(
-                new { Id = 1, Codigo = "VIN-001", Nombre = "Vinculación con la sociedad", Activo = true },
-                new { Id = 2, Codigo = "PRA-001", Nombre = "Prácticas preprofesionales", Activo = true },
-                new { Id = 3, Codigo = "INV-001", Nombre = "Investigación", Activo = true },
-                new { Id = 4, Codigo = "ACA-001", Nombre = "Académica", Activo = true });
+            entity.HasData(CatalogoSeedData.AreasPromotoras);
         });
 
         builder.Entity<Facultad>(entity =>
@@ -95,13 +96,7 @@ public sealed class ApplicationDbContext : IdentityDbContext<Usuario>, IUnitOfWo
             entity.ToTable("Facultades");
             entity.Property(x => x.Nombre).HasMaxLength(200).IsRequired();
             entity.Property(x => x.Siglas).HasMaxLength(20);
-            entity.HasData(new
-            {
-                Id = 1,
-                Nombre = "Facultad de Ciencias de la Vida y Tecnologías",
-                Siglas = "FCVT",
-                Activo = true
-            });
+            entity.HasData(CatalogoSeedData.Facultades);
         });
 
         builder.Entity<Carrera>(entity =>
@@ -112,10 +107,7 @@ public sealed class ApplicationDbContext : IdentityDbContext<Usuario>, IUnitOfWo
             entity.HasOne(x => x.Facultad)
                 .WithMany(x => x.Carreras)
                 .HasForeignKey(x => x.FacultadId);
-            entity.HasData(
-                new { Id = 1, Nombre = "Ingeniería de Software", Siglas = "IS", FacultadId = 1, Activo = true },
-                new { Id = 2, Nombre = "Ingeniería Ambiental", Siglas = "IA", FacultadId = 1, Activo = true },
-                new { Id = 3, Nombre = "Medicina Veterinaria", Siglas = "MV", FacultadId = 1, Activo = true });
+            entity.HasData(CatalogoSeedData.Carreras);
         });
     }
 

@@ -33,6 +33,7 @@ internal sealed class CatalogoRepository : ICatalogoRepository
         CancellationToken cancellationToken = default) =>
         await _db.Set<AreaPromotora>()
             .AsNoTracking()
+            .Include(x => x.AreaPadre)
             .OrderBy(x => x.Codigo)
             .ThenBy(x => x.Nombre)
             .ToListAsync(cancellationToken);
