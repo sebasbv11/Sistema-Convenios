@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.AspNetCore.RateLimiting;
 using SistemaConvenios.Application.Abstractions;
 using SistemaConvenios.Models;
 
@@ -13,21 +14,15 @@ namespace SistemaConvenios.Controllers
         private readonly UserManager<Usuario> _userManager;
         private readonly SignInManager<Usuario> _signInManager;
         private readonly IEmailSender _emailSender;
-        private readonly IWebHostEnvironment _env;
-        private readonly IConfiguration _config;
 
         public AccountController(
             UserManager<Usuario> userManager,
             SignInManager<Usuario> signInManager,
-            IEmailSender emailSender,
-            IWebHostEnvironment env,
-            IConfiguration config)
+            IEmailSender emailSender)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
-            _env = env;
-            _config = config;
         }
 
         // GET /Account/Login
@@ -42,7 +37,7 @@ namespace SistemaConvenios.Controllers
         }
 
         // POST /Account/Login
-        [HttpPost, AllowAnonymous, ValidateAntiForgeryToken]
+        [HttpPost, AllowAnonymous, ValidateAntiForgeryToken, EnableRateLimiting("login")]
         public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
@@ -149,9 +144,6 @@ namespace SistemaConvenios.Controllers
                     <p class=""text-muted"">El enlace expira en 24 horas.</p>";
 
                 await _emailSender.SendEmailAsync(model.Email, "Restablecer contraseña — FCVT", cuerpo);
-
-                if (_env.IsDevelopment() && string.IsNullOrWhiteSpace(_config["Smtp:Host"]))
-                    TempData["EnlaceDev"] = callbackUrl;
             }
 
             return RedirectToAction(nameof(OlvidePasswordConfirmacion));
@@ -212,29 +204,6 @@ namespace SistemaConvenios.Controllers
                 ModelState.AddModelError(string.Empty, error.Description);
 
             return View(model);
-        }
-
-        /// <summary>
-        /// Solo desarrollo: desbloquea una cuenta tras intentos fallidos.
-        /// Visitar: /Account/DesbloquearCuenta?email=admin@fcvt.edu.ec
-        /// </summary>
-        [AllowAnonymous]
-        public async Task<IActionResult> DesbloquearCuenta(string email)
-        {
-            if (!_env.IsDevelopment())
-                return NotFound();
-
-            if (string.IsNullOrWhiteSpace(email))
-                return Content("Indica el correo: /Account/DesbloquearCuenta?email=admin@fcvt.edu.ec");
-
-            var usuario = await _userManager.FindByEmailAsync(email);
-            if (usuario == null)
-                return Content($"No existe el usuario {email}.");
-
-            await _userManager.SetLockoutEndDateAsync(usuario, null);
-            await _userManager.ResetAccessFailedCountAsync(usuario);
-
-            return Content($"Cuenta {email} desbloqueada. Ya puedes ingresar con tu contraseña actual.");
         }
 
         [AllowAnonymous]

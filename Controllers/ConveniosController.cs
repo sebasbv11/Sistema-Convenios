@@ -74,7 +74,7 @@ public sealed class ConveniosController : Controller
         return convenio is null ? NotFound() : View(convenio);
     }
 
-    [HttpGet]
+    [HttpGet, Authorize(Roles = "Admin,Secretaria")]
     public async Task<IActionResult> Crear(CancellationToken cancellationToken)
     {
         await CargarCatalogosFormulario(cancellationToken: cancellationToken);
@@ -87,7 +87,7 @@ public sealed class ConveniosController : Controller
         });
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
+    [HttpPost, Authorize(Roles = "Admin,Secretaria"), ValidateAntiForgeryToken]
     public async Task<IActionResult> Crear(
         ConvenioFormViewModel model,
         CancellationToken cancellationToken)
@@ -104,7 +104,7 @@ public sealed class ConveniosController : Controller
                 model.EntidadId!.Value,
                 model.AreaPromotoraId!.Value,
                 model.ConvenioPadreId,
-                model.Ambito,
+                model.Ambitos,
                 model.Objeto,
                 model.FechaInicio,
                 model.FechaVencimiento,
@@ -133,7 +133,7 @@ public sealed class ConveniosController : Controller
         return RedirectToAction(nameof(Detalle), new { id = result.Value });
     }
 
-    [HttpGet]
+    [HttpGet, Authorize(Roles = "Admin,Secretaria")]
     public async Task<IActionResult> Editar(int id, CancellationToken cancellationToken)
     {
         var convenio = await _convenios.ObtenerParaEditarAsync(id, cancellationToken);
@@ -148,7 +148,7 @@ public sealed class ConveniosController : Controller
             EntidadId = convenio.EntidadId,
             AreaPromotoraId = convenio.AreaPromotoraId,
             ConvenioPadreId = convenio.ConvenioPadreId,
-            Ambito = convenio.Ambito,
+            Ambitos = convenio.Ambitos.ToList(),
             Objeto = convenio.Objeto,
             FechaInicio = convenio.FechaInicio,
             FechaVencimiento = convenio.FechaVencimiento,
@@ -167,7 +167,7 @@ public sealed class ConveniosController : Controller
         return View(model);
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
+    [HttpPost, Authorize(Roles = "Admin,Secretaria"), ValidateAntiForgeryToken]
     public async Task<IActionResult> Editar(
         int id,
         ConvenioFormViewModel model,
@@ -188,7 +188,7 @@ public sealed class ConveniosController : Controller
                 model.EntidadId!.Value,
                 model.AreaPromotoraId!.Value,
                 model.ConvenioPadreId,
-                model.Ambito,
+                model.Ambitos,
                 model.Objeto,
                 model.FechaInicio,
                 model.FechaVencimiento,
@@ -216,7 +216,7 @@ public sealed class ConveniosController : Controller
         return RedirectToAction(nameof(Detalle), new { id });
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
+    [HttpPost, Authorize(Roles = "Admin,Secretaria"), ValidateAntiForgeryToken]
     public async Task<IActionResult> CambiarEstado(
         int id,
         string nuevoEstado,
@@ -231,7 +231,7 @@ public sealed class ConveniosController : Controller
         return RedirectToAction(nameof(Detalle), new { id });
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
+    [HttpPost, Authorize(Roles = "Admin,Secretaria"), ValidateAntiForgeryToken]
     public async Task<IActionResult> SubirArchivo(
         SubirArchivoViewModel model,
         CancellationToken cancellationToken)
@@ -267,7 +267,7 @@ public sealed class ConveniosController : Controller
             : File(archivo.Contenido, "application/pdf", archivo.Nombre);
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
+    [HttpPost, Authorize(Roles = "Admin,Secretaria"), ValidateAntiForgeryToken]
     public async Task<IActionResult> EliminarArchivo(
         int id,
         int convenioId,
@@ -294,9 +294,9 @@ public sealed class ConveniosController : Controller
             catalogos.ConveniosBase, "Id", "Nombre", model?.ConvenioPadreId);
         ViewBag.Facultades = catalogos.Facultades;
         ViewBag.Carreras = catalogos.Carreras;
-        ViewBag.Ambitos = new SelectList(
+        ViewBag.Ambitos = new MultiSelectList(
             new[] { "Vinculación", "Prácticas", "Académico", "Investigativo", "Ayuda/Posgrado", "Congresos", "Otro" },
-            model?.Ambito);
+            model?.Ambitos);
         ViewBag.Estados = new SelectList(ConvenioEstados.Todos, model?.Estado);
         ViewBag.TipoEspecificoId = catalogos.Tipos
             .FirstOrDefault(x => x.Nombre.Equals("Específico", StringComparison.OrdinalIgnoreCase))

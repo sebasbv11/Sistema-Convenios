@@ -48,6 +48,10 @@
                             📊 Reportes
                         </a>
                         <span class="nav-section">Sistema</span>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="Usuarios" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuarios" ? "active" : "")">👥 Usuarios y roles</a>
+                        }
                         <a asp-controller="Account" asp-action="CambiarPassword" class="nav-link">🔒 Mi contraseña</a>
                     </nav>
                 </div>

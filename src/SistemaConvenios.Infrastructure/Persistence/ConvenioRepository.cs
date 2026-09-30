@@ -109,6 +109,7 @@ internal sealed class ConvenioRepository : IConvenioRepository
             .Include(x => x.Partes)
             .Include(x => x.Firmantes)
             .Include(x => x.Responsables)
+            .Include(x => x.Ambitos)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
     public Task<Convenio?> ObtenerBaseConRepresentantesAsync(
@@ -185,5 +186,6 @@ internal sealed class ConvenioRepository : IConvenioRepository
             .Include(x => x.AreaPromotora)
             .Include(x => x.ConvenioPadre).ThenInclude(x => x!.TipoConvenio)
             .Include(x => x.ConvenioFacultades).ThenInclude(x => x.Facultad)
-            .Include(x => x.ConvenioCarreras).ThenInclude(x => x.Carrera);
+            .Include(x => x.ConvenioCarreras).ThenInclude(x => x.Carrera)
+            .Include(x => x.Ambitos);
 }

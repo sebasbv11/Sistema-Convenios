@@ -39,11 +39,10 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label asp-for="Ambito" class="form-label"></label>
-                    <select asp-for="Ambito" asp-items="ViewBag.Ambitos" class="form-select">
-                        <option value="">-- Seleccione --</option>
-                    </select>
-                    <span asp-validation-for="Ambito" class="text-danger small"></span>
+                    <label asp-for="Ambitos" class="form-label"></label>
+                    <select asp-for="Ambitos" asp-items="ViewBag.Ambitos" multiple class="form-select" style="height:100px"></select>
+                    <span asp-validation-for="Ambitos" class="text-danger small"></span>
+                    <div class="form-text">Mantén Ctrl para seleccionar varios.</div>
                 </div>
 
                 <div class="col-md-3">

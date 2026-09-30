@@ -1,0 +1,43 @@
+@model IReadOnlyList<UsuarioListaViewModel>
+@{
+    ViewData["Title"] = "Usuarios y roles";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div><h2 class="mb-0">Usuarios y roles</h2><small class="text-muted">Administración exclusiva del rol Admin</small></div>
+    <a asp-action="Crear" class="btn btn-primary">Nuevo usuario</a>
+</div>
+
+@if (TempData["Exito"] is string exito) { <div class="alert alert-success">@exito</div> }
+@if (TempData["Error"] is string error) { <div class="alert alert-danger">@error</div> }
+
+<div class="card"><div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+    <thead><tr><th>Usuario</th><th>Cargo</th><th>Rol</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead>
+    <tbody>
+    @foreach (var usuario in Model)
+    {
+        <tr>
+            <td><strong>@usuario.NombreCompleto</strong><br /><small class="text-muted">@usuario.Email</small></td>
+            <td>@(usuario.Cargo ?? "—")</td>
+            <td><span class="badge text-bg-secondary">@usuario.Rol</span></td>
+            <td>
+                <span class="badge @(usuario.Activo ? "text-bg-success" : "text-bg-dark")">@(usuario.Activo ? "Activo" : "Inactivo")</span>
+                @if (usuario.Bloqueado) { <span class="badge text-bg-warning">Bloqueado</span> }
+            </td>
+            <td class="text-end text-nowrap">
+                <a asp-action="Editar" asp-route-id="@usuario.Id" class="btn btn-sm btn-outline-primary">Editar</a>
+                <a asp-action="RestablecerPassword" asp-route-id="@usuario.Id" class="btn btn-sm btn-outline-secondary">Contraseña</a>
+                @if (usuario.Bloqueado)
+                {
+                    <form asp-action="Desbloquear" asp-route-id="@usuario.Id" method="post" class="d-inline"><button class="btn btn-sm btn-outline-warning">Desbloquear</button></form>
+                }
+                <form asp-action="CambiarActivo" asp-route-id="@usuario.Id" method="post" class="d-inline">
+                    <button class="btn btn-sm @(usuario.Activo ? "btn-outline-danger" : "btn-outline-success")">@(usuario.Activo ? "Desactivar" : "Activar")</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div></div>

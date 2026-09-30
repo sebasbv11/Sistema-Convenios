@@ -107,7 +107,7 @@ internal static class ConvenioMapping
             convenio.EntidadId,
             convenio.AreaPromotoraId,
             convenio.ConvenioPadreId,
-            convenio.Ambito,
+            convenio.Ambitos.Select(x => x.Nombre).ToList(),
             convenio.Objeto,
             convenio.FechaInicio,
             convenio.FechaVencimiento,

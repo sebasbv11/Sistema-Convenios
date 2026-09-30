@@ -23,10 +23,10 @@ public sealed class EntidadesController : Controller
         return View(await _entidades.BuscarAsync(busqueda, cancellationToken));
     }
 
-    [HttpGet]
+    [HttpGet, Authorize(Roles = "Admin,Secretaria")]
     public IActionResult Crear() => View(new EntidadFormViewModel());
 
-    [HttpPost, ValidateAntiForgeryToken]
+    [HttpPost, Authorize(Roles = "Admin,Secretaria"), ValidateAntiForgeryToken]
     public async Task<IActionResult> Crear(
         EntidadFormViewModel model,
         CancellationToken cancellationToken)
@@ -45,7 +45,7 @@ public sealed class EntidadesController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    [HttpGet]
+    [HttpGet, Authorize(Roles = "Admin,Secretaria")]
     public async Task<IActionResult> Editar(int id, CancellationToken cancellationToken)
     {
         var entidad = await _entidades.ObtenerAsync(id, cancellationToken);
@@ -76,7 +76,7 @@ public sealed class EntidadesController : Controller
         });
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
+    [HttpPost, Authorize(Roles = "Admin,Secretaria"), ValidateAntiForgeryToken]
     public async Task<IActionResult> Editar(
         int id,
         EntidadFormViewModel model,

@@ -17,7 +17,7 @@ public sealed class Convenio : AggregateRoot<int>
         int entidadId,
         int areaPromotoraId,
         int? convenioPadreId,
-        string ambito,
+        IEnumerable<string> ambitos,
         string objeto,
         DateTime fechaInicio,
         DateTime fechaVencimiento,
@@ -35,11 +35,12 @@ public sealed class Convenio : AggregateRoot<int>
         Numero = NumeroConvenio.Crear(numero).Valor;
         AplicarDatos(
             tipoConvenioId, entidadId, areaPromotoraId, convenioPadreId,
-            ambito, objeto, fechaInicio,
+            objeto, fechaInicio,
             fechaVencimiento, numeroResolucion, supervisor,
             contactoGestionNombre, contactoGestionEmail, contactoGestionTelefono,
             renovacionAutomatica, observaciones);
         Estado = ConvenioEstados.Validar(estado);
+        ReemplazarAmbitos(ambitos);
         UsuarioCreadorId = usuarioCreadorId;
         FechaCreacion = DateTime.UtcNow;
         RegistrarHistorial(string.Empty, Estado, "Convenio creado", usuario);
@@ -54,7 +55,7 @@ public sealed class Convenio : AggregateRoot<int>
     public AreaPromotora? AreaPromotora { get; private set; }
     public int? ConvenioPadreId { get; private set; }
     public Convenio? ConvenioPadre { get; private set; }
-    public string Ambito { get; private set; } = string.Empty;
+    public string Ambito => string.Join(", ", Ambitos.Select(x => x.Nombre));
     public string Objeto { get; private set; } = string.Empty;
     public DateTime FechaInicio { get; private set; }
     public DateTime FechaVencimiento { get; private set; }
@@ -104,7 +105,7 @@ public sealed class Convenio : AggregateRoot<int>
         int entidadId,
         int areaPromotoraId,
         int? convenioPadreId,
-        string ambito,
+        IEnumerable<string> ambitos,
         string objeto,
         DateTime fechaInicio,
         DateTime fechaVencimiento,
@@ -120,7 +121,7 @@ public sealed class Convenio : AggregateRoot<int>
         string? usuario) =>
         new(
             numero, tipoConvenioId, entidadId, areaPromotoraId, convenioPadreId,
-            ambito, objeto,
+            ambitos, objeto,
             fechaInicio, fechaVencimiento, estado, numeroResolucion,
             supervisor, contactoGestionNombre, contactoGestionEmail,
             contactoGestionTelefono, renovacionAutomatica, observaciones,
@@ -131,7 +132,7 @@ public sealed class Convenio : AggregateRoot<int>
         int entidadId,
         int areaPromotoraId,
         int? convenioPadreId,
-        string ambito,
+        IEnumerable<string> ambitos,
         string objeto,
         DateTime fechaInicio,
         DateTime fechaVencimiento,
@@ -147,11 +148,12 @@ public sealed class Convenio : AggregateRoot<int>
     {
         AplicarDatos(
             tipoConvenioId, entidadId, areaPromotoraId, convenioPadreId,
-            ambito, objeto, fechaInicio,
+            objeto, fechaInicio,
             fechaVencimiento, numeroResolucion, supervisor,
             contactoGestionNombre, contactoGestionEmail, contactoGestionTelefono,
             renovacionAutomatica, observaciones);
 
+        ReemplazarAmbitos(ambitos);
         CambiarEstado(estado, null, usuario);
         FechaModificacion = DateTime.UtcNow;
     }
@@ -304,10 +306,17 @@ public sealed class Convenio : AggregateRoot<int>
         if (normalizados.Count == 0)
             throw new DomainException("Debe seleccionar al menos un ámbito.");
 
-        Ambitos.Clear();
-        foreach (var ambito in normalizados)
+        var seleccionados = normalizados.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var eliminados = Ambitos
+            .Where(x => !seleccionados.Contains(x.Nombre))
+            .ToList();
+
+        foreach (var ambito in eliminados)
+            Ambitos.Remove(ambito);
+
+        foreach (var ambito in normalizados.Where(nombre =>
+                     Ambitos.All(x => !string.Equals(x.Nombre, nombre, StringComparison.OrdinalIgnoreCase))))
             Ambitos.Add(AmbitoConvenio.Crear(Id, ambito));
-        Ambito = string.Join(", ", Ambitos.Select(x => x.Nombre));
     }
 
     public ClausulaConvenio AgregarClausula(string titulo, string tipo, string contenido, int orden)
@@ -450,7 +459,6 @@ public sealed class Convenio : AggregateRoot<int>
         int entidadId,
         int areaPromotoraId,
         int? convenioPadreId,
-        string ambito,
         string objeto,
         DateTime fechaInicio,
         DateTime fechaVencimiento,
@@ -478,7 +486,6 @@ public sealed class Convenio : AggregateRoot<int>
         EntidadId = entidadId;
         AreaPromotoraId = areaPromotoraId;
         ConvenioPadreId = convenioPadreId;
-        Ambito = Requerido(ambito, "El ámbito es obligatorio.");
         Objeto = Requerido(objeto, "El objeto del convenio es obligatorio.");
         FechaInicio = periodo.Inicio;
         FechaVencimiento = periodo.Fin;

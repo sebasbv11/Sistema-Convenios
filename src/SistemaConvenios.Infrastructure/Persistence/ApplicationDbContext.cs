@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SistemaConvenios.Application.Abstractions;
 using SistemaConvenios.Models;
 
 namespace SistemaConvenios.Data;
 
-public sealed class ApplicationDbContext : IdentityDbContext<Usuario>, IUnitOfWork
+public sealed class ApplicationDbContext : IdentityDbContext<Usuario>, IUnitOfWork, IDataProtectionKeyContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
@@ -36,6 +37,7 @@ public sealed class ApplicationDbContext : IdentityDbContext<Usuario>, IUnitOfWo
     public DbSet<ModificacionConvenio> ModificacionesConvenio => Set<ModificacionConvenio>();
     public DbSet<EvaluacionConvenio> EvaluacionesConvenio => Set<EvaluacionConvenio>();
     public DbSet<CierreConvenio> CierresConvenio => Set<CierreConvenio>();
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -118,21 +120,22 @@ public sealed class ApplicationDbContext : IdentityDbContext<Usuario>, IUnitOfWo
             entity.ToTable("Entidades");
             entity.Property(x => x.Nombre).HasMaxLength(200).IsRequired();
             entity.Property(x => x.TipoEntidad).HasMaxLength(50).IsRequired();
-            entity.Property(x => x.Ruc).HasMaxLength(13).IsRequired(false);
-            entity.Property(x => x.Direccion).HasMaxLength(300).IsRequired(false);
-            entity.Property(x => x.Provincia).HasMaxLength(100).IsRequired(false);
-            entity.Property(x => x.Ciudad).HasMaxLength(100).IsRequired(false);
+            entity.Property(x => x.Ruc).HasMaxLength(13).IsRequired();
+            entity.Property(x => x.Direccion).HasMaxLength(300).IsRequired();
+            entity.Property(x => x.Provincia).HasMaxLength(100).IsRequired();
+            entity.Property(x => x.Ciudad).HasMaxLength(100).IsRequired();
             entity.Property(x => x.Pais).HasMaxLength(100).IsRequired();
-            entity.Property(x => x.RepresentanteLegal).HasMaxLength(150).IsRequired(false);
-            entity.Property(x => x.CedulaRepresentante).HasMaxLength(13).IsRequired(false);
-            entity.Property(x => x.CargoRepresentante).HasMaxLength(100).IsRequired(false);
-            entity.Property(x => x.TelefonoRepresentante).HasMaxLength(30).IsRequired(false);
-            entity.Property(x => x.Email).HasMaxLength(150).IsRequired(false);
-            entity.Property(x => x.Telefono).HasMaxLength(20).IsRequired(false);
+            entity.Property(x => x.RepresentanteLegal).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.CedulaRepresentante).HasMaxLength(13).IsRequired();
+            entity.Property(x => x.CargoRepresentante).HasMaxLength(100).IsRequired();
+            entity.Property(x => x.TelefonoRepresentante).HasMaxLength(30).IsRequired();
+            entity.Property(x => x.Email).HasMaxLength(150).IsRequired();
+            entity.Property(x => x.Telefono).HasMaxLength(20).IsRequired();
             entity.Property(x => x.ContactoGestionNombre).HasMaxLength(150);
             entity.Property(x => x.ContactoGestionCargo).HasMaxLength(150);
             entity.Property(x => x.ContactoGestionEmail).HasMaxLength(150);
             entity.Property(x => x.ContactoGestionTelefono).HasMaxLength(30);
+            entity.HasIndex(x => x.Ruc).IsUnique();
         });
     }
 
@@ -142,7 +145,7 @@ public sealed class ApplicationDbContext : IdentityDbContext<Usuario>, IUnitOfWo
         {
             entity.ToTable("Convenios");
             entity.Property(x => x.Numero).HasMaxLength(20).IsRequired();
-            entity.Property(x => x.Ambito).HasMaxLength(500).IsRequired();
+            entity.Ignore(x => x.Ambito);
             entity.Property(x => x.Objeto).IsRequired();
             entity.Property(x => x.Estado).HasMaxLength(30).IsRequired();
             entity.Property(x => x.NumeroResolucion).HasMaxLength(100).IsRequired(false);
@@ -157,6 +160,8 @@ public sealed class ApplicationDbContext : IdentityDbContext<Usuario>, IUnitOfWo
             entity.Property(x => x.Moneda).HasMaxLength(10);
             entity.Property(x => x.FuenteFinanciamiento).HasMaxLength(300);
             entity.Property(x => x.CondicionesRenovacion).HasMaxLength(500);
+            entity.HasIndex(x => x.Numero).IsUnique();
+            entity.HasIndex(x => new { x.Estado, x.FechaVencimiento });
             entity.HasOne(x => x.TipoConvenio)
                 .WithMany(x => x.Convenios)
                 .HasForeignKey(x => x.TipoConvenioId);

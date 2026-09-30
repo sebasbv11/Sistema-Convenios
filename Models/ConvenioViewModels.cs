@@ -24,9 +24,9 @@ public sealed class ConvenioFormViewModel : IValidatableObject
     [Display(Name = "Convenio marco / internacional base")]
     public int? ConvenioPadreId { get; set; }
 
-    [Required, StringLength(50)]
-    [Display(Name = "Ámbito")]
-    public string Ambito { get; set; } = string.Empty;
+    [MinLength(1, ErrorMessage = "Seleccione al menos un ámbito")]
+    [Display(Name = "Ámbitos")]
+    public List<string> Ambitos { get; set; } = new();
 
     [Required(ErrorMessage = "El objeto del convenio es obligatorio")]
     [Display(Name = "Objeto del convenio")]
