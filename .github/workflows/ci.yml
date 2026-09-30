@@ -21,4 +21,7 @@ jobs:
       - run: dotnet test SistemaConvenios.sln --configuration Release --no-build --no-restore
       - run: dotnet tool install --global dotnet-ef --version 10.0.9
       - run: dotnet ef migrations has-pending-model-changes --project SistemaConvenios.csproj --startup-project SistemaConvenios.csproj --context ApplicationDbContext --no-build --configuration Release
+        env:
+          ASPNETCORE_ENVIRONMENT: Production
+          ConnectionStrings__DefaultConnection: Host=localhost;Database=convenios_ci;Username=postgres;Password=unused
       - run: docker build --tag sistema-convenios:ci .
