@@ -1,0 +1,6 @@
+project_id          = "reemplazar-proyecto-gcp"
+region              = "southamerica-west1"
+github_repository   = "sebasbv11/Sistema-Convenios"
+initial_admin_email = "admin@fcvt.edu.ec"
+database_tier       = "db-f1-micro"
+deletion_protection = true

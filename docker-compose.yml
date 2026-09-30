@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: convenios_fcvt
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: "1234"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD in .env}"
     ports:
       - "5433:5432"
     volumes:

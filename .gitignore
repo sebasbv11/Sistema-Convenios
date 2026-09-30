@@ -12,6 +12,15 @@ TestResults/
 Storage/
 tmp/
 appsettings.Development.json
+.env
+!.env.example
 *.user
 *.suo
 *.log
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+*.tfplan
+crash.log

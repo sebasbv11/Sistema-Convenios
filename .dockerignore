@@ -1,0 +1,13 @@
+.git
+.github
+.vs
+.vscode
+**/bin
+**/obj
+.env
+.tools
+Storage
+TestResults
+tmp
+*.user
+*.log

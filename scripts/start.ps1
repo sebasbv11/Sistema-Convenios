@@ -55,6 +55,10 @@ try {
         }
     }
     else {
+        if (-not (Test-Path ".env")) {
+            throw "Falta el archivo .env. Copia .env.example como .env y define POSTGRES_PASSWORD."
+        }
+
         Write-Host "Creando el contenedor PostgreSQL con Docker Compose..."
         Invoke-Checked { docker compose up -d postgres } `
             "No se pudo crear o iniciar PostgreSQL con Docker Compose."

@@ -1,0 +1,115 @@
+name: Desplegar staging GCP
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: staging-gcp
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (vars.GCP_STAGING_DEPLOY_ENABLED == 'true' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      REGION: ${{ vars.GCP_REGION }}
+      SERVICE: ${{ vars.GCP_CLOUD_RUN_SERVICE }}
+      REPOSITORY: ${{ vars.GCP_ARTIFACT_REPOSITORY }}
+      RUNTIME_SA: ${{ vars.GCP_RUNTIME_SERVICE_ACCOUNT }}
+      SQL_CONNECTION: ${{ vars.GCP_CLOUD_SQL_CONNECTION_NAME }}
+      DATABASE_SECRET: ${{ vars.GCP_DATABASE_SECRET_ID }}
+      ADMIN_SECRET: ${{ vars.GCP_ADMIN_PASSWORD_SECRET_ID }}
+      DOCUMENTS_BUCKET: ${{ vars.GCP_DOCUMENTS_BUCKET }}
+      INITIAL_ADMIN_EMAIL: ${{ vars.GCP_INITIAL_ADMIN_EMAIL }}
+      DEPLOY_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+
+      - id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Configurar Artifact Registry
+        run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+
+      - name: Construir y publicar imagen inmutable
+        run: |
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/sistema-convenios:${DEPLOY_SHA}"
+          docker build --tag "$IMAGE" .
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: Crear o actualizar trabajo de migración
+        run: |
+          gcloud run jobs deploy "${SERVICE}-migrate" \
+            --project "$PROJECT_ID" \
+            --region "$REGION" \
+            --image "$IMAGE" \
+            --service-account "$RUNTIME_SA" \
+            --set-cloudsql-instances "$SQL_CONNECTION" \
+            --set-secrets "ConnectionStrings__DefaultConnection=${DATABASE_SECRET}:latest" \
+            --set-env-vars "DataProtection__Provider=Database,ArchivosConfig__Provider=GoogleCloudStorage,ArchivosConfig__Bucket=${DOCUMENTS_BUCKET}" \
+            --command dotnet \
+            --args "SistemaConvenios.dll,--migrate" \
+            --max-retries 0 \
+            --task-timeout 10m \
+            --quiet
+
+      - name: Aplicar migraciones antes del despliegue
+        run: >-
+          gcloud run jobs execute "${SERVICE}-migrate"
+          --project "$PROJECT_ID"
+          --region "$REGION"
+          --wait
+
+      - name: Desplegar Cloud Run
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --project "$PROJECT_ID" \
+            --region "$REGION" \
+            --image "$IMAGE" \
+            --service-account "$RUNTIME_SA" \
+            --add-cloudsql-instances "$SQL_CONNECTION" \
+            --set-secrets "ConnectionStrings__DefaultConnection=${DATABASE_SECRET}:latest,SeedAdmin__Password=${ADMIN_SECRET}:latest" \
+            --set-env-vars "ASPNETCORE_ENVIRONMENT=Production,Database__ApplyMigrationsOnStartup=false,DataProtection__Provider=Database,ArchivosConfig__Provider=GoogleCloudStorage,ArchivosConfig__Bucket=${DOCUMENTS_BUCKET},SeedAdmin__Enabled=true,SeedAdmin__Email=${INITIAL_ADMIN_EMAIL}" \
+            --port 8080 \
+            --cpu 1 \
+            --memory 512Mi \
+            --min 0 \
+            --max 3 \
+            --allow-unauthenticated \
+            --quiet
+
+      - name: Verificar despliegue
+        run: |
+          URL="$(gcloud run services describe "$SERVICE" --project "$PROJECT_ID" --region "$REGION" --format='value(status.url)')"
+          for attempt in {1..12}; do
+            if curl --fail --silent --show-error "${URL}/health/ready"; then
+              echo "Despliegue saludable: $URL"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "El servicio no superó la verificación de disponibilidad."
+          exit 1
