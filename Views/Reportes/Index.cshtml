@@ -14,7 +14,7 @@
     };
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 no-print">
     <div>
         <h4 class="mb-0">📊 Reportes completos</h4>
         <small class="text-muted">Filtra por empresa, ubicación, estado y rango de fechas.</small>
@@ -22,7 +22,7 @@
     <a asp-controller="Convenios" asp-action="Index" class="btn btn-outline-secondary btn-sm">Ver registros</a>
 </div>
 
-<ul class="nav nav-pills mb-3">
+<ul class="nav nav-pills mb-3 no-print">
     <li class="nav-item">
         <a class="nav-link @Active("por-vencer")"
            asp-action="Index"
@@ -40,7 +40,7 @@
     </li>
 </ul>
 
-<form method="get" class="card shadow-sm mb-3">
+<form method="get" class="card shadow-sm mb-3 no-print">
     <input type="hidden" name="tipoReporte" value="@tipoReporte" />
     <div class="card-body">
         <div class="row g-2 align-items-end">
@@ -80,22 +80,27 @@
         </div>
         <div class="d-flex gap-2 mt-3">
             <a asp-action="Index" asp-route-tipoReporte="@tipoReporte" class="btn btn-link btn-sm">Limpiar</a>
-            <a asp-controller="Convenios"
-               asp-action="ExportarCsv"
+            <a asp-action="ExportarExcel"
+               asp-route-tipoReporte="@tipoReporte"
                asp-route-empresa="@ViewBag.EmpresaFiltro"
                asp-route-provincia="@ViewBag.ProvinciaFiltro"
                asp-route-ciudad="@ViewBag.CiudadFiltro"
                asp-route-estado="@ViewBag.EstadoFiltro"
                asp-route-fechaDesde="@ViewBag.FechaDesdeFiltro"
                asp-route-fechaHasta="@ViewBag.FechaHastaFiltro"
-               asp-route-reporte="@tipoReporte"
-               class="btn btn-success btn-sm">Exportar CSV</a>
-            <button type="button" onclick="window.print()" class="btn btn-outline-dark btn-sm">Imprimir PDF</button>
+               class="btn btn-success btn-sm">Exportar Excel</a>
+            <button type="button" onclick="window.print()" class="btn btn-outline-dark btn-sm">Exportar PDF</button>
         </div>
     </div>
 </form>
 
-<div class="card shadow-sm">
+<div class="report-print-header">
+    <h1>FCVT · Convenios</h1>
+    <h2>@TituloReporte()</h2>
+    <p>Generado el @DateTime.Now.ToString("dd/MM/yyyy HH:mm") · @Model.Count() registro(s)</p>
+</div>
+
+<div class="card shadow-sm report-results">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <span class="fw-semibold">@TituloReporte()</span>
         <span class="badge bg-light text-dark border">@Model.Count() registro(s)</span>
@@ -163,3 +168,20 @@
         </table>
     </div>
 </div>
+
+<style>
+    .report-print-header { display: none; }
+    @@media print {
+        .navbar, .sidebar, .no-print { display: none !important; }
+        .col-md-10 { width: 100% !important; }
+        main { padding: 0 !important; }
+        .report-print-header { display: block; margin-bottom: 1rem; }
+        .report-print-header h1 { font-size: 18pt; margin: 0; }
+        .report-print-header h2 { font-size: 14pt; margin: .25rem 0; }
+        .report-print-header p { font-size: 9pt; margin: 0; }
+        .report-results { box-shadow: none !important; }
+        .report-results .table { font-size: 8pt; }
+        .report-results .btn, .report-results th:last-child, .report-results td:last-child { display: none; }
+        @@page { size: landscape; margin: 12mm; }
+    }
+</style>

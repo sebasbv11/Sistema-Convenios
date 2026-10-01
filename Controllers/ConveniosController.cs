@@ -45,29 +45,6 @@ public sealed class ConveniosController : Controller
         return View(resultado.Convenios);
     }
 
-    public async Task<IActionResult> ExportarCsv(
-        string? busqueda,
-        string? estado,
-        int? tipoId,
-        int? facultadId,
-        int? carreraId,
-        string? tipoEntidad,
-        string? empresa,
-        string? provincia,
-        string? ciudad,
-        DateTime? fechaDesde,
-        DateTime? fechaHasta,
-        string? reporte,
-        CancellationToken cancellationToken)
-    {
-        var bytes = await _convenios.ExportarCsvAsync(
-            new ConvenioFiltro(
-                busqueda, estado, tipoId, facultadId, carreraId, tipoEntidad,
-                empresa, provincia, ciudad, fechaDesde, fechaHasta, reporte),
-            cancellationToken);
-        return File(bytes, "text/csv; charset=utf-8", $"convenios_{DateTime.Now:yyyyMMdd_HHmm}.csv");
-    }
-
     public async Task<IActionResult> Detalle(int id, CancellationToken cancellationToken)
     {
         var convenio = await _convenios.ObtenerDetalleAsync(id, cancellationToken);

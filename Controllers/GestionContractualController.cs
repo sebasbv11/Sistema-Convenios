@@ -13,7 +13,7 @@ public sealed class GestionContractualController : Controller
     private readonly IGestionContractualAppService _gestion;
     public GestionContractualController(IGestionContractualAppService gestion) => _gestion = gestion;
 
-    [HttpGet("")]
+    [HttpGet(""), Authorize(Roles = "Admin,Secretaria")]
     public async Task<IActionResult> Index(int convenioId, CancellationToken ct)
     {
         var model = await _gestion.ObtenerAsync(convenioId, ct);

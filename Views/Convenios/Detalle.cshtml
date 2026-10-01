@@ -1,6 +1,7 @@
 @model SistemaConvenios.Application.Convenios.ConvenioDetalleDto
 @{
     ViewData["Title"] = $"Convenio {Model.Numero}";
+    var puedeGestionar = User.IsInRole("Admin") || User.IsInRole("Secretaria");
 }
 
 @if (TempData["Exito"] != null)
@@ -18,9 +19,12 @@
         <small class="text-muted">@Model.Entidad?.Nombre — @Model.TipoConvenio</small>
     </div>
     <div class="d-flex gap-2">
-        <a asp-controller="GestionContractual" asp-action="Index" asp-route-convenioId="@Model.Id"
-           class="btn btn-primary btn-sm">⚙ Gestión contractual</a>
-        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-sm">✎ Editar</a>
+        @if (puedeGestionar)
+        {
+            <a asp-controller="GestionContractual" asp-action="Index" asp-route-convenioId="@Model.Id"
+               class="btn btn-primary btn-sm">⚙ Gestión contractual</a>
+            <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-sm">✎ Editar</a>
+        }
         <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Volver</a>
     </div>
 </div>
@@ -157,8 +161,13 @@
         <div class="card shadow-sm mb-3">
             <div class="card-header d-flex justify-content-between align-items-center bg-white">
                 <span class="fw-semibold">📎 Documentos adjuntos</span>
-                <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#panelSubir">+ Subir PDF</button>
+                @if (puedeGestionar)
+                {
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#panelSubir">+ Subir PDF</button>
+                }
             </div>
+            @if (puedeGestionar)
+            {
             <div class="collapse" id="panelSubir">
                 <div class="card-body border-bottom bg-light">
                     <form asp-action="SubirArchivo" method="post" enctype="multipart/form-data">
@@ -190,6 +199,7 @@
                     </form>
                 </div>
             </div>
+            }
             <div class="card-body p-0">
                 @if (!Model.Archivos.Any())
                 {
@@ -210,11 +220,14 @@
                                     <td class="text-muted small">@(arch.TamanioBytes / 1024) KB</td>
                                     <td class="text-muted small">@arch.FechaSubida.ToLocalTime().ToString("dd/MM/yy HH:mm")</td>
                                     <td>
-                                        <form asp-action="EliminarArchivo" method="post" style="display:inline" onsubmit="return confirm('¿Eliminar?')">
-                                            <input type="hidden" name="id" value="@arch.Id" />
-                                            <input type="hidden" name="convenioId" value="@Model.Id" />
-                                            <button type="submit" class="btn btn-link btn-sm text-danger p-0">Eliminar</button>
-                                        </form>
+                                        @if (puedeGestionar)
+                                        {
+                                            <form asp-action="EliminarArchivo" method="post" style="display:inline" onsubmit="return confirm('¿Eliminar?')">
+                                                <input type="hidden" name="id" value="@arch.Id" />
+                                                <input type="hidden" name="convenioId" value="@Model.Id" />
+                                                <button type="submit" class="btn btn-link btn-sm text-danger p-0">Eliminar</button>
+                                            </form>
+                                        }
                                     </td>
                                 </tr>
                             }
@@ -258,6 +271,8 @@
 
     @* Panel lateral *@
     <div class="col-md-4">
+        @if (puedeGestionar)
+        {
         <div class="card shadow-sm mb-3">
             <div class="card-header bg-white fw-semibold">Cambiar estado</div>
             <div class="card-body">
@@ -274,6 +289,7 @@
                 </form>
             </div>
         </div>
+        }
 
         @if (Model.Entidad != null)
         {

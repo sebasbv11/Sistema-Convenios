@@ -49,4 +49,25 @@ public sealed class ReportesController : Controller
 
         return View(resultado.Convenios);
     }
+
+    public async Task<IActionResult> ExportarExcel(
+        string? tipoReporte,
+        string? empresa,
+        string? provincia,
+        string? ciudad,
+        string? estado,
+        DateTime? fechaDesde,
+        DateTime? fechaHasta,
+        CancellationToken cancellationToken)
+    {
+        var bytes = await _convenios.ExportarCsvAsync(new ConvenioFiltro(
+            Estado: estado,
+            Empresa: empresa,
+            Provincia: provincia,
+            Ciudad: ciudad,
+            FechaDesde: fechaDesde,
+            FechaHasta: fechaHasta,
+            Reporte: tipoReporte), cancellationToken);
+        return File(bytes, "text/csv; charset=utf-8", $"reporte_convenios_{DateTime.Now:yyyyMMdd_HHmm}.csv");
+    }
 }

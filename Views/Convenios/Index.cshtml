@@ -2,11 +2,15 @@
 @model IEnumerable<SistemaConvenios.Application.Convenios.ConvenioListaDto>
 @{
     ViewData["Title"] = "Convenios";
+    var puedeGestionar = User.IsInRole("Admin") || User.IsInRole("Secretaria");
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">📄 Convenios</h4>
-    <a asp-action="Crear" class="btn btn-primary btn-sm">+ Nuevo convenio</a>
+    @if (puedeGestionar)
+    {
+        <a asp-action="Crear" class="btn btn-primary btn-sm">+ Nuevo convenio</a>
+    }
 </div>
 
 @* Filtros *@
@@ -73,21 +77,6 @@
     <div class="col-auto">
         <button type="submit" class="btn btn-outline-secondary btn-sm">Filtrar</button>
         <a asp-action="Index" class="btn btn-link btn-sm">Limpiar</a>
-        <a asp-action="ExportarCsv"
-           asp-route-busqueda="@ViewBag.Busqueda"
-           asp-route-estado="@ViewBag.EstadoFiltro"
-           asp-route-tipoId="@ViewBag.TipoFiltro"
-           asp-route-facultadId="@ViewBag.FacultadFiltro"
-           asp-route-carreraId="@ViewBag.CarreraFiltro"
-           asp-route-tipoEntidad="@ViewBag.TipoEntidadFiltro"
-           asp-route-empresa="@ViewBag.EmpresaFiltro"
-           asp-route-provincia="@ViewBag.ProvinciaFiltro"
-           asp-route-ciudad="@ViewBag.CiudadFiltro"
-           asp-route-fechaDesde="@ViewBag.FechaDesdeFiltro"
-           asp-route-fechaHasta="@ViewBag.FechaHastaFiltro"
-           asp-route-reporte="@ViewBag.ReporteFiltro"
-           class="btn btn-success btn-sm">Exportar Excel</a>
-        <button type="button" onclick="window.print()" class="btn btn-outline-dark btn-sm">PDF</button>
     </div>
 </form>
 

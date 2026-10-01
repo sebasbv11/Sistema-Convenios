@@ -1,11 +1,15 @@
 @model IEnumerable<SistemaConvenios.Application.Entidades.EntidadListaDto>
 @{
     ViewData["Title"] = "Entidades";
+    var puedeGestionar = User.IsInRole("Admin") || User.IsInRole("Secretaria");
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="mb-0">🏢 Entidades</h4>
-    <a asp-action="Crear" class="btn btn-primary btn-sm">+ Nueva entidad</a>
+    @if (puedeGestionar)
+    {
+        <a asp-action="Crear" class="btn btn-primary btn-sm">+ Nueva entidad</a>
+    }
 </div>
 
 @if (TempData["Exito"] != null)
@@ -64,7 +68,10 @@
                         }
                     </td>
                     <td>
-                        <a asp-action="Editar" asp-route-id="@e.Id" class="btn btn-outline-primary btn-sm">Editar</a>
+                        @if (puedeGestionar)
+                        {
+                            <a asp-action="Editar" asp-route-id="@e.Id" class="btn btn-outline-primary btn-sm">Editar</a>
+                        }
                     </td>
                 </tr>
             }
@@ -76,6 +83,9 @@
 {
     <div class="text-center text-muted py-5">
         <p>No hay entidades registradas aún.</p>
-        <a asp-action="Crear" class="btn btn-primary btn-sm">+ Registrar primera entidad</a>
+        @if (puedeGestionar)
+        {
+            <a asp-action="Crear" class="btn btn-primary btn-sm">+ Registrar primera entidad</a>
+        }
     </div>
 }

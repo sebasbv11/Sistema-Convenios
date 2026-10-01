@@ -51,4 +51,15 @@ public sealed class AuthorizationTests
                 .Where(x => x.GetCustomAttributes(typeof(HttpPostAttribute), true).Length > 0),
             action => Assert.NotEmpty(action.GetCustomAttributes(typeof(ValidateAntiForgeryTokenAttribute), true)));
     }
+
+    [Fact]
+    public void Gestion_contractual_es_exclusiva_de_roles_de_gestion()
+    {
+        var action = typeof(GestionContractualController).GetMethod(nameof(GestionContractualController.Index))!;
+        var autorizacion = action.GetCustomAttributes(typeof(AuthorizeAttribute), true)
+            .Cast<AuthorizeAttribute>()
+            .Single();
+
+        Assert.Equal("Admin,Secretaria", autorizacion.Roles);
+    }
 }

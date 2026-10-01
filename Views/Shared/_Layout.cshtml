@@ -19,7 +19,10 @@
     {
         <nav class="navbar navbar-expand navbar-dark" style="background:#1a3a6b;">
             <div class="container-fluid">
-                <span class="navbar-brand">FCVT · Convenios</span>
+                <a asp-controller="Home" asp-action="Index" class="navbar-brand d-flex align-items-center gap-2 text-decoration-none">
+                    <img src="~/images/logo-uleam.png" alt="ULEAM" style="height:32px;width:auto" />
+                    <span>FCVT · Convenios</span>
+                </a>
                 <div class="ms-auto d-flex align-items-center gap-3">
                     <span class="text-white-50 small">@User.Identity.Name</span>
                     <a asp-controller="Account" asp-action="CambiarPassword" class="text-white-50 small text-decoration-none">🔒 Cambiar contraseña</a>
