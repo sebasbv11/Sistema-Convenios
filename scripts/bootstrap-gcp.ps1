@@ -15,16 +15,20 @@ $terraformDirectory = Join-Path $PSScriptRoot "..\infra\gcp"
 $variablesFile = Join-Path $terraformDirectory "terraform.tfvars"
 $stateBucket = "$ProjectId-sistema-convenios-tfstate"
 
-gcloud config set project $ProjectId
-gcloud services enable storage.googleapis.com
+gcloud.cmd config set project $ProjectId
+gcloud.cmd services enable storage.googleapis.com
 
-gcloud storage buckets describe "gs://$stateBucket" 2>$null
-if ($LASTEXITCODE -ne 0) {
-    gcloud storage buckets create "gs://$stateBucket" `
+$previousErrorActionPreference = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+gcloud.cmd storage buckets describe "gs://$stateBucket" 2>$null
+$bucketExists = $LASTEXITCODE -eq 0
+$ErrorActionPreference = $previousErrorActionPreference
+if (-not $bucketExists) {
+    gcloud.cmd storage buckets create "gs://$stateBucket" `
         --project $ProjectId `
         --location $Region `
         --uniform-bucket-level-access
-    gcloud storage buckets update "gs://$stateBucket" --versioning
+    gcloud.cmd storage buckets update "gs://$stateBucket" --versioning
 }
 
 if (-not (Test-Path $variablesFile)) {

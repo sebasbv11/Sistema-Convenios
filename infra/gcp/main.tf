@@ -72,6 +72,7 @@ resource "google_sql_database_instance" "postgres" {
 
   settings {
     tier              = var.database_tier
+    edition           = "ENTERPRISE"
     availability_type = "ZONAL"
     disk_type         = "PD_SSD"
     disk_size         = 10
@@ -239,7 +240,7 @@ resource "google_cloud_run_v2_service" "application" {
         value_source {
           secret_key_ref {
             secret  = google_secret_manager_secret.database_connection.secret_id
-            version = "latest"
+            version = google_secret_manager_secret_version.database_connection.version
           }
         }
       }
@@ -248,7 +249,7 @@ resource "google_cloud_run_v2_service" "application" {
         value_source {
           secret_key_ref {
             secret  = google_secret_manager_secret.admin_password.secret_id
-            version = "latest"
+            version = google_secret_manager_secret_version.admin_password.version
           }
         }
       }
