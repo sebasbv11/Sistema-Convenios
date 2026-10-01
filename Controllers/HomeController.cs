@@ -33,4 +33,6 @@ public sealed class HomeController : Controller
     }
 
     public IActionResult Privacy() => View();
+
+    public IActionResult Ayuda() => View();
 }
