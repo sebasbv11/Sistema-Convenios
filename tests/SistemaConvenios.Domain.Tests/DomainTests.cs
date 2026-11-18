@@ -2,6 +2,7 @@ using SistemaConvenios.Domain;
 using SistemaConvenios.Domain.Exceptions;
 using SistemaConvenios.Domain.ValueObjects;
 using SistemaConvenios.Models;
+using NetArchTest.Rules;
 
 namespace SistemaConvenios.Domain.Tests;
 
@@ -95,13 +96,12 @@ public sealed class DomainTests
     [Fact]
     public void Capas_respetan_la_direccion_de_dependencias()
     {
-        var domainReferences = typeof(Convenio).Assembly.GetReferencedAssemblies().Select(x => x.Name).ToList();
+        var domainAssembly = typeof(Convenio).Assembly;
         var applicationAssembly = typeof(SistemaConvenios.Application.Convenios.IConvenioAppService).Assembly;
-        var applicationReferences = applicationAssembly.GetReferencedAssemblies().Select(x => x.Name).ToList();
-
-        Assert.DoesNotContain("SistemaConvenios.Application", domainReferences);
-        Assert.DoesNotContain("SistemaConvenios.Infrastructure", domainReferences);
-        Assert.DoesNotContain("SistemaConvenios.Infrastructure", applicationReferences);
+        Assert.True(Types.InAssembly(domainAssembly).ShouldNot()
+            .HaveDependencyOnAny("SistemaConvenios.Application", "SistemaConvenios.Infrastructure").GetResult().IsSuccessful);
+        Assert.True(Types.InAssembly(applicationAssembly).ShouldNot()
+            .HaveDependencyOn("SistemaConvenios.Infrastructure").GetResult().IsSuccessful);
     }
 
     [Fact]

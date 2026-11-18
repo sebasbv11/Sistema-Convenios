@@ -8,6 +8,8 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Serilog;
+using Serilog.Formatting.Json;
 using SistemaConvenios.Application;
 using SistemaConvenios.Data;
 using SistemaConvenios.Infrastructure;
@@ -16,7 +18,10 @@ using SistemaConvenios.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.ClearProviders();
-builder.Logging.AddJsonConsole();
+builder.Logging.AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning);
+builder.Logging.AddSerilog(new LoggerConfiguration()
+    .WriteTo.Console(new JsonFormatter())
+    .CreateLogger(), dispose: true);
 builder.Logging.AddDebug();
 
 var telemetry = builder.Services.AddOpenTelemetry()

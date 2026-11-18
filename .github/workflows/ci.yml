@@ -11,6 +11,17 @@ permissions:
 jobs:
   build-test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: convenios_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d convenios_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -18,7 +29,13 @@ jobs:
           dotnet-version: 10.0.x
       - run: dotnet restore SistemaConvenios.sln
       - run: dotnet build SistemaConvenios.sln --configuration Release --no-restore
-      - run: dotnet test SistemaConvenios.sln --configuration Release --no-build --no-restore
+      - run: dotnet test SistemaConvenios.sln --configuration Release --no-build --no-restore --collect:"XPlat Code Coverage"
+        env:
+          CONVENIOS_TEST_DATABASE: Host=localhost;Database=convenios_test;Username=postgres;Password=ci-only-password
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: '**/TestResults/**/coverage.cobertura.xml'
       - run: dotnet tool install --global dotnet-ef --version 10.0.9
       - run: dotnet ef migrations has-pending-model-changes --project SistemaConvenios.csproj --startup-project SistemaConvenios.csproj --context ApplicationDbContext --no-build --configuration Release
         env:

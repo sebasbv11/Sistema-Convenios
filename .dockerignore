@@ -5,6 +5,13 @@
 **/bin
 **/obj
 .env
+.env.*
+appsettings.Development.json
+**/.terraform
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfvars
+**/*.tfplan
 .tools
 Storage
 TestResults
