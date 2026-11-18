@@ -26,6 +26,15 @@ inyecta estos valores mediante un gestor de secretos y variables de entorno.
 
 La aplicación queda disponible en `http://localhost:5070`.
 
+## Observabilidad
+
+La aplicación registra eventos estructurados en JSON y recopila trazas y métricas
+HTTP con OpenTelemetry. Para exportar trazas, métricas y logs a un colector OTLP,
+configura `OTEL_EXPORTER_OTLP_ENDPOINT` (por ejemplo, `http://localhost:4317` para
+gRPC) y, si hace falta, `OTEL_EXPORTER_OTLP_PROTOCOL` y `OTEL_EXPORTER_OTLP_HEADERS`.
+Las cabeceras con credenciales deben inyectarse desde el gestor de secretos, no
+guardarse en el repositorio. Sin endpoint configurado no se envían datos a un colector.
+
 El script reutiliza automáticamente el contenedor
 `sistema-convenios-postgres` si ya existe; si no existe, lo crea con Docker
 Compose y espera a que la base esté disponible antes de iniciar la aplicación.

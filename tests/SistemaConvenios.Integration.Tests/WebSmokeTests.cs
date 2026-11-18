@@ -1,6 +1,9 @@
 using System.Net;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 
 namespace SistemaConvenios.Integration.Tests;
 
@@ -12,6 +15,13 @@ public sealed class WebSmokeTests : IClassFixture<WebApplicationFactory<Program>
     {
         _factory = factory.WithWebHostBuilder(builder =>
             builder.UseEnvironment("Testing"));
+    }
+
+    [Fact]
+    public void Telemetria_registra_trazas_y_metricas()
+    {
+        Assert.NotNull(_factory.Services.GetService<TracerProvider>());
+        Assert.NotNull(_factory.Services.GetService<MeterProvider>());
     }
 
     [Fact]
